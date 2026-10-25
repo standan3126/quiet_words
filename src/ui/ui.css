@@ -308,7 +308,21 @@ h3 {
 }
 
 .home-title {
-  text-shadow: 0 1px 12px var(--bg);
+  width: fit-content;
+  margin: 0 auto;
+  padding: 14px 26px;
+  border-radius: 24px;
+  background: var(--panel);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+
+/* Text placed straight on the scenery gets a soft glow so it stays readable on any picture. */
+.home-title,
+.message,
+.preview,
+.search-words {
+  text-shadow: 0 0 4px var(--halo), 0 0 10px var(--halo);
 }
 
 /* Photos in settings */

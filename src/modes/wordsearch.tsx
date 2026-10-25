@@ -30,9 +30,11 @@ export function WordSearch({ seed, breakNumber, onDone }: Props) {
   const selected = new Set(selection.map(key))
 
   const cellAt = (e: PointerEvent): [number, number] => {
+    // Measure the letters' area, inside the grid's padding.
     const r = grid.current!.getBoundingClientRect()
-    const x = Math.floor(((e.clientX - r.left) / r.width) * SIZE)
-    const y = Math.floor(((e.clientY - r.top) / r.height) * SIZE)
+    const pad = parseFloat(getComputedStyle(grid.current!).paddingLeft)
+    const x = Math.floor(((e.clientX - r.left - pad) / (r.width - 2 * pad)) * SIZE)
+    const y = Math.floor(((e.clientY - r.top - pad) / (r.height - 2 * pad)) * SIZE)
     return [Math.max(0, Math.min(SIZE - 1, x)), Math.max(0, Math.min(SIZE - 1, y))]
   }
 

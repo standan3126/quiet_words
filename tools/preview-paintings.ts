@@ -1,34 +1,19 @@
 // Writes the painted scenes for one journey's places to files, to look at outside the game.
-//   npm run paintings -- Meadow
-// Writes private/paintings/<journey>/: one SVG per place by day and by night, and an
-// index.html showing them all as postcards and as full phone backgrounds.
+//   npm run paintings -- Meadow [folder]
+// Writes private/paintings/<journey>/ (or the folder given): one SVG per place by day and by
+// night, and an index.html showing them all as postcards and as full phone backgrounds.
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
-import type { VNode } from 'preact'
 import type { LevelIndex } from '../src/game/level.ts'
 import { H, W } from '../src/theme/paint-kit.ts'
 import { scene } from '../src/theme/painted.tsx'
+import { toSvg } from '../src/theme/svg-string.ts'
 
 const journey = process.argv[2] ?? 'Meadow'
 const root = join(import.meta.dirname, '..')
 const index: LevelIndex = JSON.parse(readFileSync(join(root, 'public', 'levels', 'index.json'), 'utf8'))
 const packs = index.packs.filter((p) => p.journey === journey)
 if (!packs.length) throw new Error(`No places in journey "${journey}"`)
-
-const escape = (s: string) => s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;')
-
-// The scenes only use plain SVG elements, so a tiny serializer is enough.
-function toSvg(node: unknown): string {
-  if (node == null || node === false) return ''
-  if (Array.isArray(node)) return node.map(toSvg).join('')
-  if (typeof node !== 'object') return escape(String(node))
-  const { type, props } = node as VNode<Record<string, unknown>>
-  const attrs = Object.entries(props)
-    .filter(([k, v]) => k !== 'children' && v != null)
-    .map(([k, v]) => ` ${k}="${escape(String(v))}"`)
-    .join('')
-  return `<${type as string}${attrs}>${toSvg(props.children)}</${type as string}>`
-}
 
 function painting(name: string, seed: number, night: boolean): string {
   const { p, parts } = scene(journey, seed, night, name)
@@ -40,7 +25,7 @@ function painting(name: string, seed: number, night: boolean): string {
 }
 
 const slug = (s: string) => s.toLowerCase().replace(/\s+/g, '-')
-const dir = join(root, 'private', 'paintings', slug(journey))
+const dir = process.argv[3] ?? join(root, 'private', 'paintings', slug(journey))
 mkdirSync(dir, { recursive: true })
 
 const cards: string[] = []

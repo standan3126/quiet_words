@@ -1,5 +1,5 @@
-// Themed word searches for the breaks between levels. Words only run forwards (across, down,
-// or diagonally) to keep them restful. Seeded, so a break looks the same if reopened.
+// Themed word searches for the breaks between levels. Words run across, down, diagonally and
+// backwards, and each search mixes all four. Seeded, so a break looks the same if reopened.
 
 export const THEMES: { name: string; words: string[] }[] = [
   { name: 'Birds', words: ['robin', 'wren', 'finch', 'heron', 'owl', 'sparrow', 'swallow', 'crane', 'dove', 'lark', 'eagle', 'jay'] },
@@ -18,7 +18,13 @@ export const THEMES: { name: string; words: string[] }[] = [
 
 export const SIZE = 8
 const WORDS_PER_SEARCH = 7
-const DIRECTIONS: [number, number][] = [[1, 0], [0, 1], [1, 1], [1, -1]]
+type Step = [number, number]
+const KINDS: Step[][] = [
+  [[1, 0]], // across
+  [[0, 1]], // down
+  [[1, 1], [1, -1]], // diagonal
+  [[-1, 0], [0, -1], [-1, -1], [-1, 1]], // backwards: right to left, upwards, or back along a diagonal
+]
 // Filler letters weighted toward common ones, so the grid reads like gentle noise.
 const FILLER = 'eeeeaaaoooiiinnnsssrrrtttlllddhhcumwfgypbvk'
 
@@ -57,16 +63,28 @@ export function makeSearch(seed: number, breakNumber: number): Search {
   }
   pool.length = WORDS_PER_SEARCH + 2
   const words: SearchWord[] = []
+  // Each word prefers the next kind of direction in turn, from a seeded starting point.
+  const firstKind = Math.floor(r() * KINDS.length)
+
+  // Every spot where a word fits going one of these ways.
+  const spots = (word: string, steps: Step[]) => {
+    const found: [number, number][][] = []
+    for (const [dx, dy] of steps)
+      for (let y = 0; y < SIZE; y++)
+        for (let x = 0; x < SIZE; x++) {
+          const cells: [number, number][] = [...word].map((_, i) => [x + dx * i, y + dy * i])
+          if (cells.every(([cx, cy], i) => cx >= 0 && cy >= 0 && cx < SIZE && cy < SIZE && (grid[cy][cx] === null || grid[cy][cx] === word[i]))) found.push(cells)
+        }
+    return found
+  }
 
   for (const word of pool.sort((a, b) => b.length - a.length)) {
     if (words.length === WORDS_PER_SEARCH) break
-    for (let attempt = 0; attempt < 200; attempt++) {
-      const [dx, dy] = DIRECTIONS[Math.floor(r() * DIRECTIONS.length)]
-      const x = Math.floor(r() * SIZE)
-      const y = Math.floor(r() * SIZE)
-      const cells: [number, number][] = [...word].map((_, i) => [x + dx * i, y + dy * i])
-      const fits = cells.every(([cx, cy], i) => cx >= 0 && cy >= 0 && cx < SIZE && cy < SIZE && (grid[cy][cx] === null || grid[cy][cx] === word[i]))
-      if (!fits) continue
+    // Try the kinds in turn, starting with the next one due; a long word may only fit one way.
+    for (let k = 0; k < KINDS.length; k++) {
+      const options = spots(word, KINDS[(firstKind + words.length + k) % KINDS.length])
+      if (!options.length) continue
+      const cells = options[Math.floor(r() * options.length)]
       cells.forEach(([cx, cy], i) => (grid[cy][cx] = word[i]))
       words.push({ word, cells })
       break

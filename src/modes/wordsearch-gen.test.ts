@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { lineCells, makeSearch, SIZE, THEMES } from './wordsearch-gen'
 
 describe('word search', () => {
-  it('places every word along its cells, forwards, on an 8x8 grid', () => {
+  it('places every word along its cells on an 8x8 grid', () => {
     for (let seed = 1; seed <= 300; seed++) {
       const s = makeSearch(seed * 12, seed)
       expect(s.rows).toHaveLength(SIZE)
@@ -10,6 +10,26 @@ describe('word search', () => {
       expect(s.words.length, `seed ${seed}`).toBeGreaterThanOrEqual(6)
       for (const w of s.words) expect(w.cells.map(([x, y]) => s.rows[y][x]).join('')).toBe(w.word)
     }
+  })
+
+  it('mixes across, down, diagonal and backwards words', () => {
+    const kinds = new Set<string>()
+    let mixed = 0
+    for (let seed = 1; seed <= 300; seed++) {
+      const s = makeSearch(seed * 12, seed)
+      const own = new Set<string>()
+      for (const { cells: [a, b] } of s.words) {
+        const dx = b[0] - a[0]
+        const dy = b[1] - a[1]
+        const kind = dx < 0 || dy < 0 && dx === 0 ? 'backwards' : dx && dy ? 'diagonal' : dx ? 'across' : 'down'
+        own.add(kind)
+        kinds.add(`${dx},${dy}`)
+      }
+      if (own.size >= 3) mixed++
+    }
+    // Long words can crowd a grid into fewer directions now and then, but rarely.
+    expect(mixed).toBeGreaterThanOrEqual(270)
+    expect(kinds.size).toBe(8)
   })
 
   it('is the same every time for the same break', () => {

@@ -67,7 +67,7 @@ export function scene(journey: string, seed: number, night: boolean, place?: str
   // Places with their own painting show what their name says.
   const paint = place && PLACES[place]
   if (paint) {
-    paint({ p, r, night, add: (el) => parts.push(el), layer })
+    paint({ p, r, night, add: (el) => parts.push(el), layer, sun: { x: sunX, y: sunY } })
     return { p, parts }
   }
 

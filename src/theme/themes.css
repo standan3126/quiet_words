@@ -6,7 +6,8 @@
 :root[data-theme='day'] {
   --bg: #efe9dc;
   --bg-deep: #ddd3bf;
-  --panel: rgba(250, 246, 236, 0.72);
+  --panel: rgba(250, 246, 236, 0.84);
+  --halo: rgba(250, 246, 236, 0.95); /* a soft glow behind text that sits on the scenery */
   --panel-edge: rgba(90, 80, 60, 0.18);
   --text: #2e352c;
   --text-soft: #5d6656;
@@ -27,7 +28,8 @@
 :root[data-theme='night'] {
   --bg: #120800;
   --bg-deep: #0a0400;
-  --panel: rgba(30, 14, 0, 0.78);
+  --panel: rgba(30, 14, 0, 0.86);
+  --halo: rgba(18, 8, 0, 0.95);
   --panel-edge: rgba(200, 110, 0, 0.3);
   --text: #f0a000;
   --text-soft: #a86400;
