@@ -75,3 +75,29 @@ test('the live engine plays after a tap, and mute silences it', async ({ page })
   await page.waitForTimeout(2500)
   expect(await loudest(page, 1000), 'mute should silence everything').toBeLessThan(0.0005)
 })
+
+test('sound pauses while the app is out of sight and comes back with it', async ({ page }) => {
+  await page.addInitScript(() => {
+    const Real = window.AudioContext
+    window.AudioContext = class extends Real {
+      constructor(...args: ConstructorParameters<typeof AudioContext>) {
+        super(...args)
+        ;(window as unknown as { __ctx: AudioContext }).__ctx = this
+      }
+    }
+  })
+  await page.goto('/')
+  await page.getByRole('button', { name: 'Begin your journey' }).click()
+  const state = () => page.evaluate(() => (window as unknown as { __ctx: AudioContext }).__ctx.state)
+  await expect.poll(state).toBe('running')
+
+  const setVisibility = (v: 'hidden' | 'visible') =>
+    page.evaluate((v) => {
+      Object.defineProperty(document, 'visibilityState', { value: v, configurable: true })
+      document.dispatchEvent(new Event('visibilitychange'))
+    }, v)
+  await setVisibility('hidden')
+  await expect.poll(state).toBe('suspended')
+  await setVisibility('visible')
+  await expect.poll(state).toBe('running')
+})

@@ -35,14 +35,27 @@ class AudioEngine {
   private sleepTimers: number[] = []
 
   // Browsers only allow audio to start from a tap, so this is called on the first one.
+  // iOS also reports 'interrupted' after a call or Siri.
   unlock() {
     if (!this.ctx) this.build()
-    if (this.ctx!.state === 'suspended') this.ctx!.resume()
+    if (this.ctx!.state !== 'running' && document.visibilityState === 'visible') this.ctx!.resume().catch(() => {})
+  }
+
+  // Pause all sound while the game is out of sight. Otherwise iOS freezes the app with its audio
+  // still "playing", and it starts up again when another home-screen web app opens.
+  private followVisibility(ctx: AudioContext) {
+    const pause = () => ctx.suspend().catch(() => {})
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'hidden') pause()
+      else ctx.resume().catch(() => {}) // if the browser refuses without a tap, the next tap resumes it
+    })
+    window.addEventListener('pagehide', pause)
   }
 
   private build() {
     const ctx = new AudioContext({ latencyHint: 'interactive' })
     this.ctx = ctx
+    this.followVisibility(ctx)
     const limiter = ctx.createDynamicsCompressor()
     limiter.threshold.value = -12
     limiter.ratio.value = 4
