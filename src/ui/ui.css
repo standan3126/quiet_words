@@ -1,6 +1,6 @@
 .screen {
   min-height: 100%;
-  padding: max(16px, env(safe-area-inset-top)) 16px max(24px, env(safe-area-inset-bottom));
+  padding: calc(max(16px, env(safe-area-inset-top)) + var(--top-gap)) 16px max(24px, env(safe-area-inset-bottom));
   max-width: 520px;
   margin: 0 auto;
   position: relative;
@@ -81,7 +81,7 @@ h3 {
 
 .theme-toggle {
   position: absolute;
-  top: max(16px, env(safe-area-inset-top));
+  top: calc(max(16px, env(safe-area-inset-top)) + var(--top-gap));
   right: 16px;
 }
 
@@ -271,6 +271,8 @@ h3 {
 .scene {
   position: fixed;
   inset: 0;
+  /* iOS home-screen apps can end the page short of the bottom of the screen; reach past it. */
+  bottom: calc(-1 * (env(safe-area-inset-top) + env(safe-area-inset-bottom)));
   z-index: -1;
   background: var(--bg);
 }
