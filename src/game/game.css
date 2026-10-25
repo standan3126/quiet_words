@@ -19,6 +19,7 @@
 /* iOS may report no bottom inset here, so keep the tools clear of the home bar regardless. */
 html.ios-app .play {
   height: 100lvh;
+  padding-top: calc(max(12px, env(safe-area-inset-top)) + 10px);
   padding-bottom: max(28px, env(safe-area-inset-bottom));
 }
 
