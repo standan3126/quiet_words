@@ -1,5 +1,6 @@
 import type { Mix } from '../audio/ambience'
 import type { SceneryMode } from '../theme/scenery'
+import { ALL_BREAK_KINDS, DEFAULT_BREAK_EVERY, type BreakKind } from './breaks'
 import { load, save } from './storage'
 
 export type ThemeMode = 'auto' | 'day' | 'night'
@@ -20,6 +21,8 @@ export interface Settings {
   relaxedHints: boolean
   largeText: boolean
   haptics: boolean
+  breakEvery: number // levels between little games; 0 for none
+  breakKinds: BreakKind[] // which little games come up
 }
 
 export const defaultSettings: Settings = {
@@ -38,6 +41,8 @@ export const defaultSettings: Settings = {
   relaxedHints: true,
   largeText: false,
   haptics: false,
+  breakEvery: DEFAULT_BREAK_EVERY,
+  breakKinds: ALL_BREAK_KINDS,
 }
 
 const KEY = 'settings'

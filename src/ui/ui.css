@@ -512,3 +512,8 @@ button.postcard {
 .add-photos + .add-photos {
   margin-top: 8px;
 }
+
+/* Options that do nothing while the setting above them is off. */
+.dimmed {
+  opacity: 0.5;
+}

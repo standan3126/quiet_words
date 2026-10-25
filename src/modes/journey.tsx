@@ -1,14 +1,15 @@
-// The main journey: one level after another through the locations, with an untimed quiz
-// or word search break every so often. Also plays a finished place again from its postcard,
+// The main journey: one level after another through the locations, with an untimed little
+// game between levels as often as the player likes. Also plays a finished place again from its postcard,
 // without breaks and without moving the journey along.
 import { useEffect, useState } from 'preact/hooks'
 import { emptyProgress, type LevelProgress } from '../game/level-state'
 import { loadLevel, type LoadedLevel } from '../game/levels'
-import { addStats, breakAfter, COINS_PER_LEVEL, SEARCH_EVERY, type Progress, type Stats } from '../meta/progress'
+import { breakAfter } from '../meta/breaks'
+import { addStats, COINS_PER_LEVEL, type Progress, type Stats } from '../meta/progress'
 import type { Settings } from '../meta/settings'
 import type { SleepMinutes } from '../ui/sleep-timer'
 import { Board } from './board'
-import { Quiz } from './quiz'
+import { WordBreak } from './word-break'
 import { WordSearch } from './wordsearch'
 
 interface Props {
@@ -23,6 +24,7 @@ interface Props {
 }
 
 export function Journey({ progress, onProgress, onPostcards, ...common }: Props) {
+  const { settings } = common
   const [loaded, setLoaded] = useState<LoadedLevel | 'end' | null>(null)
   const visit = progress.revisit
   const levelId = visit ? visit.level : progress.level
@@ -48,12 +50,14 @@ export function Journey({ progress, onProgress, onPostcards, ...common }: Props)
 
   const brk = progress.pendingBreak
   if (brk && !visit) {
-    const finishBreak = (coins: number, asked = 0) =>
-      onProgress((p) => ({ ...p, coins: p.coins + coins, pendingBreak: null, quizNext: p.quizNext + asked }))
-    return brk.kind === 'quiz' ? (
-      <Quiz start={progress.quizNext} onDone={finishBreak} />
+    // Each game keeps its own place, so its questions (or a search's theme) don't repeat soon.
+    const start = progress.breakNext[brk.kind] ?? 0
+    const finishBreak = (coins: number, asked: number) =>
+      onProgress((p) => ({ ...p, coins: p.coins + coins, pendingBreak: null, breakNext: { ...p.breakNext, [brk.kind]: start + asked } }))
+    return brk.kind === 'wordsearch' ? (
+      <WordSearch seed={brk.after} breakNumber={start} onDone={(c) => finishBreak(c, 1)} />
     ) : (
-      <WordSearch seed={brk.after} breakNumber={Math.floor(brk.after / SEARCH_EVERY)} onDone={(c) => finishBreak(c)} />
+      <WordBreak kind={brk.kind} start={start} onDone={finishBreak} />
     )
   }
 
@@ -90,7 +94,7 @@ export function Journey({ progress, onProgress, onPostcards, ...common }: Props)
       ...p,
       level: p.level + 1,
       current: null,
-      pendingBreak: breakAfter(p.level),
+      pendingBreak: breakAfter(p.level, settings.breakEvery, settings.breakKinds),
       stats: addStats(p.stats, { skipped: skipped ? 1 : 0 }),
     }))
   }

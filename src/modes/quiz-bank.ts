@@ -1,4 +1,4 @@
-// Grammar and spelling questions for the quiz breaks. The correct answer is always written
+// Fill-the-blank grammar and spelling questions for the breaks. The correct answer is always written
 // first here; the quiz shuffles the choices when it shows them.
 
 export interface Question {
@@ -205,7 +205,6 @@ const spellings: [string, string, string][] = [
   ['meadow', 'medow', 'meadoe'],
 ]
 
-export const QUESTIONS: Question[] = [
-  ...blanks.map(([prompt, a, b, c, why]): Question => ({ prompt, choices: [a, b, c], why })),
-  ...spellings.map(([a, b, c]): Question => ({ prompt: 'Which spelling is right?', choices: [a, b, c] })),
-]
+export const GRAMMAR: Question[] = blanks.map(([prompt, a, b, c, why]): Question => ({ prompt, choices: [a, b, c], why }))
+export const SPELLING: Question[] = spellings.map(([a, b, c]): Question => ({ prompt: 'Which spelling is right?', choices: [a, b, c] }))
+export const QUESTIONS: Question[] = [...GRAMMAR, ...SPELLING]

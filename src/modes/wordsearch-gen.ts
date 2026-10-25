@@ -1,5 +1,5 @@
-// Themed word searches for the breaks between levels. Words run across, down, diagonally and
-// backwards, and each search mixes all four. Seeded, so a break looks the same if reopened.
+// Themed word searches for the breaks between levels. Every search has words across, down and
+// diagonally, read both forwards and backwards. Seeded, so a break looks the same if reopened.
 
 export const THEMES: { name: string; words: string[] }[] = [
   { name: 'Birds', words: ['robin', 'wren', 'finch', 'heron', 'owl', 'sparrow', 'swallow', 'crane', 'dove', 'lark', 'eagle', 'jay'] },
@@ -19,12 +19,13 @@ export const THEMES: { name: string; words: string[] }[] = [
 export const SIZE = 8
 const WORDS_PER_SEARCH = 7
 type Step = [number, number]
-const KINDS: Step[][] = [
-  [[1, 0]], // across
-  [[0, 1]], // down
-  [[1, 1], [1, -1]], // diagonal
-  [[-1, 0], [0, -1], [-1, -1], [-1, 1]], // backwards: right to left, upwards, or back along a diagonal
-]
+const ACROSS: Step = [1, 0]
+const DOWN: Step = [0, 1]
+const LEFT: Step = [-1, 0]
+const UP: Step = [0, -1]
+const DIAGONALS: Step[] = [[1, 1], [1, -1]] // reading left to right
+const BACK_DIAGONALS: Step[] = [[-1, 1], [-1, -1]]
+const ALL: Step[] = [ACROSS, DOWN, LEFT, UP, ...DIAGONALS, ...BACK_DIAGONALS]
 // Filler letters weighted toward common ones, so the grid reads like gentle noise.
 const FILLER = 'eeeeaaaoooiiinnnsssrrrtttlllddhhcumwfgypbvk'
 
@@ -49,49 +50,81 @@ function rng(seed: number) {
   }
 }
 
-// `seed` is the level the break follows; themes take turns from one break to the next.
-export function makeSearch(seed: number, breakNumber: number): Search {
-  const r = rng(seed)
-  const theme = THEMES[breakNumber % THEMES.length]
-  const grid: (string | null)[][] = Array.from({ length: SIZE }, () => Array(SIZE).fill(null))
-  // Fisher-Yates with the seeded generator: sorting with a random comparison isn't
-  // repeatable across browsers.
-  const pool = [...theme.words]
-  for (let i = pool.length - 1; i > 0; i--) {
+// Fisher-Yates with the seeded generator: sorting with a random comparison isn't
+// repeatable across browsers.
+function shuffle<T>(items: T[], r: () => number): T[] {
+  const out = [...items]
+  for (let i = out.length - 1; i > 0; i--) {
     const j = Math.floor(r() * (i + 1))
-    ;[pool[i], pool[j]] = [pool[j], pool[i]]
+    ;[out[i], out[j]] = [out[j], out[i]]
   }
-  pool.length = WORDS_PER_SEARCH + 2
-  const words: SearchWord[] = []
-  // Each word prefers the next kind of direction in turn, from a seeded starting point.
-  const firstKind = Math.floor(r() * KINDS.length)
+  return out
+}
 
-  // Every spot where a word fits going one of these ways.
-  const spots = (word: string, steps: Step[]) => {
+export const axisOf = ([dx, dy]: Step) => (dx && dy ? 'diagonal' : dx ? 'horizontal' : 'vertical')
+// Backwards means right to left, or straight up the page.
+export const isBackwards = ([dx, dy]: Step) => dx < 0 || (dx === 0 && dy < 0)
+
+// Every search has words across, down and diagonal, and at least two backwards ones
+// running different ways, with at least two read forwards too.
+export function isVaried(words: SearchWord[]): boolean {
+  const steps = words.map(({ cells: [a, b] }): Step => [b[0] - a[0], b[1] - a[1]])
+  const back = steps.filter(isBackwards)
+  return (
+    new Set(steps.map(axisOf)).size === 3 &&
+    back.length >= 2 &&
+    new Set(back.map(axisOf)).size >= 2 &&
+    steps.length - back.length >= 2
+  )
+}
+
+function attempt(pool: string[], r: () => number): SearchWord[] {
+  const grid: (string | null)[][] = Array.from({ length: SIZE }, () => Array(SIZE).fill(null))
+  // Every spot where a word fits going one way.
+  const spots = (word: string, [dx, dy]: Step) => {
     const found: [number, number][][] = []
-    for (const [dx, dy] of steps)
-      for (let y = 0; y < SIZE; y++)
-        for (let x = 0; x < SIZE; x++) {
-          const cells: [number, number][] = [...word].map((_, i) => [x + dx * i, y + dy * i])
-          if (cells.every(([cx, cy], i) => cx >= 0 && cy >= 0 && cx < SIZE && cy < SIZE && (grid[cy][cx] === null || grid[cy][cx] === word[i]))) found.push(cells)
-        }
+    for (let y = 0; y < SIZE; y++)
+      for (let x = 0; x < SIZE; x++) {
+        const cells: [number, number][] = [...word].map((_, i) => [x + dx * i, y + dy * i])
+        if (cells.every(([cx, cy], i) => cx >= 0 && cy >= 0 && cx < SIZE && cy < SIZE && (grid[cy][cx] === null || grid[cy][cx] === word[i]))) found.push(cells)
+      }
     return found
   }
-
-  for (const word of pool.sort((a, b) => b.length - a.length)) {
+  // One word each way the search needs, plus one free choice, handed out in a random order.
+  const pick = (steps: Step[]) => steps[Math.floor(r() * steps.length)]
+  let plan = shuffle([ACROSS, DOWN, pick(DIAGONALS), LEFT, UP, pick(BACK_DIAGONALS), pick(ALL)], r)
+  const words: SearchWord[] = []
+  // Longest first, while the grid is emptiest.
+  for (const word of [...pool].sort((a, b) => b.length - a.length)) {
     if (words.length === WORDS_PER_SEARCH) break
-    // Try the kinds in turn, starting with the next one due; a long word may only fit one way.
-    for (let k = 0; k < KINDS.length; k++) {
-      const options = spots(word, KINDS[(firstKind + words.length + k) % KINDS.length])
+    // A planned direction if one fits, otherwise any direction at all.
+    for (const step of [...plan, ...shuffle(ALL, r)]) {
+      const options = spots(word, step)
       if (!options.length) continue
       const cells = options[Math.floor(r() * options.length)]
       cells.forEach(([cx, cy], i) => (grid[cy][cx] = word[i]))
       words.push({ word, cells })
+      plan = plan.filter((p) => p !== step)
       break
     }
   }
+  return words
+}
 
-  const rows = grid.map((row) => row.map((c) => c ?? FILLER[Math.floor(r() * FILLER.length)]).join(''))
+// `seed` is the level the break follows; `breakNumber` picks the theme, so themes take turns.
+export function makeSearch(seed: number, breakNumber: number): Search {
+  const r = rng(seed)
+  const theme = THEMES[breakNumber % THEMES.length]
+  // Crowded grids occasionally miss a direction; lay the words out again until none is missing.
+  let words: SearchWord[] = []
+  for (let tries = 0; tries < 40; tries++) {
+    words = attempt(shuffle(theme.words, r).slice(0, WORDS_PER_SEARCH + 2), r)
+    if (words.length >= WORDS_PER_SEARCH - 1 && isVaried(words)) break
+  }
+
+  const grid: string[][] = Array.from({ length: SIZE }, () => Array(SIZE).fill(''))
+  for (const { word, cells } of words) cells.forEach(([x, y], i) => (grid[y][x] = word[i]))
+  const rows = grid.map((row) => row.map((c) => c || FILLER[Math.floor(r() * FILLER.length)]).join(''))
   return { theme: theme.name, rows, words: words.sort((a, b) => a.word.localeCompare(b.word)) }
 }
 

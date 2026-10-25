@@ -1,5 +1,6 @@
 import { LAYER_LABELS, LAYERS } from '../audio/ambience'
 import type { Album } from '../meta/albums'
+import { BREAK_EVERY_STOPS, BREAK_KINDS, describeEvery } from '../meta/breaks'
 import type { Settings, ThemeMode } from '../meta/settings'
 import { DeviceSettings } from './device-settings'
 import { BackIcon } from './icons'
@@ -48,6 +49,44 @@ function Toggle({ label, hint, checked, onToggle }: { label: string; hint?: stri
       </span>
       <input type="checkbox" checked={checked} onChange={(e) => onToggle((e.target as HTMLInputElement).checked)} />
     </label>
+  )
+}
+
+// How often a little game comes between levels, and which ones.
+function BreakSettings({ settings, onChange }: { settings: Settings; onChange: (patch: Partial<Settings>) => void }) {
+  // A saved value between the stops shows at the nearest one.
+  const stop = BREAK_EVERY_STOPS.reduce((best, v, i) => (Math.abs(v - settings.breakEvery) < Math.abs(BREAK_EVERY_STOPS[best] - settings.breakEvery) ? i : best), 0)
+  const off = !settings.breakEvery
+  return (
+    <section class="panel">
+      <h3>Little games</h3>
+      <label class="row">
+        <span>
+          How often
+          <small class="soft">{describeEvery(settings.breakEvery)}</small>
+        </span>
+        <input
+          type="range"
+          min={0}
+          max={BREAK_EVERY_STOPS.length - 1}
+          step={1}
+          value={stop}
+          aria-valuetext={describeEvery(settings.breakEvery)}
+          onInput={(e) => onChange({ breakEvery: BREAK_EVERY_STOPS[Number((e.target as HTMLInputElement).value)] })}
+        />
+      </label>
+      <div class={off ? 'dimmed' : ''}>
+        {BREAK_KINDS.map(({ kind, label, hint }) => (
+          <Toggle
+            label={label}
+            hint={hint}
+            checked={settings.breakKinds.includes(kind)}
+            onToggle={(v) => onChange({ breakKinds: v ? [...settings.breakKinds, kind] : settings.breakKinds.filter((k) => k !== kind) })}
+          />
+        ))}
+      </div>
+      {!off && !settings.breakKinds.length && <p class="soft note">Nothing is ticked, so no little games will come up.</p>}
+    </section>
   )
 }
 
@@ -116,6 +155,8 @@ export function SettingsScreen({ settings, sleepMinutes, albums, hasBuiltIn, onC
             />
           ))}
       </section>
+
+      <BreakSettings settings={settings} onChange={onChange} />
 
       <section class="panel">
         <h3>Comfort</h3>

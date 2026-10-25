@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { lineCells, makeSearch, SIZE, THEMES } from './wordsearch-gen'
+import { isVaried, lineCells, makeSearch, SIZE, THEMES } from './wordsearch-gen'
 
 describe('word search', () => {
   it('places every word along its cells on an 8x8 grid', () => {
-    for (let seed = 1; seed <= 300; seed++) {
-      const s = makeSearch(seed * 12, seed)
+    for (let seed = 1; seed <= 2000; seed++) {
+      const s = makeSearch(seed * 6, seed)
       expect(s.rows).toHaveLength(SIZE)
       s.rows.forEach((row) => expect(row).toMatch(/^[a-z]{8}$/))
       expect(s.words.length, `seed ${seed}`).toBeGreaterThanOrEqual(6)
@@ -12,23 +12,13 @@ describe('word search', () => {
     }
   })
 
-  it('mixes across, down, diagonal and backwards words', () => {
+  it('has every direction, forwards and backwards, in every search', () => {
     const kinds = new Set<string>()
-    let mixed = 0
-    for (let seed = 1; seed <= 300; seed++) {
-      const s = makeSearch(seed * 12, seed)
-      const own = new Set<string>()
-      for (const { cells: [a, b] } of s.words) {
-        const dx = b[0] - a[0]
-        const dy = b[1] - a[1]
-        const kind = dx < 0 || dy < 0 && dx === 0 ? 'backwards' : dx && dy ? 'diagonal' : dx ? 'across' : 'down'
-        own.add(kind)
-        kinds.add(`${dx},${dy}`)
-      }
-      if (own.size >= 3) mixed++
+    for (let seed = 1; seed <= 2000; seed++) {
+      const s = makeSearch(seed * 6, seed)
+      expect(isVaried(s.words), `seed ${seed}`).toBe(true)
+      for (const { cells: [a, b] } of s.words) kinds.add(`${b[0] - a[0]},${b[1] - a[1]}`)
     }
-    // Long words can crowd a grid into fewer directions now and then, but rarely.
-    expect(mixed).toBeGreaterThanOrEqual(270)
     expect(kinds.size).toBe(8)
   })
 

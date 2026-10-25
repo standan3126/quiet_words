@@ -1,11 +1,6 @@
 import type { LevelProgress } from '../game/level-state'
+import type { Break, BreakKind } from './breaks'
 import { load, save } from './storage'
-
-// A short untimed break between journey levels.
-export interface Break {
-  kind: 'quiz' | 'wordsearch'
-  after: number // the level it follows; also seeds the word search
-}
 
 export interface DailyState {
   date: string // YYYY-MM-DD, local time
@@ -25,7 +20,7 @@ export interface Progress {
   coins: number
   current: LevelProgress | null // saved mid-level state, so closing the app loses nothing
   pendingBreak: Break | null
-  quizNext: number // position in the quiz bank, so questions don't repeat until all are seen
+  breakNext: Partial<Record<BreakKind, number>> // how far through each break's questions, so none repeat until all are seen
   daily: DailyState | null
   flowers: string[] // dates of finished daily puzzles; each is a pressed flower in Postcards
   revisit: Revisit | null
@@ -52,22 +47,13 @@ export const COINS_QUIZ_RIGHT = 3
 export const COINS_QUIZ_TRY = 1 // a wrong answer still earns something
 export const COINS_SEARCH_WORD = 1
 export const COINS_SEARCH_DONE = 5
-export const QUIZ_EVERY = 8 // levels
-export const SEARCH_EVERY = 12
-
-// Which break, if any, follows a journey level.
-export function breakAfter(level: number): Break | null {
-  if (level % QUIZ_EVERY === 0) return { kind: 'quiz', after: level }
-  if (level % SEARCH_EVERY === 0) return { kind: 'wordsearch', after: level }
-  return null
-}
 
 export const defaultProgress: Progress = {
   level: 1,
   coins: STARTING_COINS,
   current: null,
   pendingBreak: null,
-  quizNext: 0,
+  breakNext: {},
   daily: null,
   flowers: [],
   revisit: null,
@@ -77,8 +63,12 @@ export const defaultProgress: Progress = {
 const KEY = 'progress'
 
 export async function loadProgress(): Promise<Progress> {
-  const stored = await load<Partial<Progress>>(KEY, {})
-  return { ...defaultProgress, ...stored, stats: { ...defaultProgress.stats, ...stored.stats } }
+  const stored = await load<Partial<Progress> & { quizNext?: number }>(KEY, {})
+  // Before there were many kinds of break, one grammar-and-spelling quiz kept a single place.
+  const { quizNext, ...rest } = stored
+  const breakNext = rest.breakNext ?? (quizNext ? { grammar: quizNext } : {})
+  const pendingBreak = rest.pendingBreak && (rest.pendingBreak.kind as string) === 'quiz' ? { ...rest.pendingBreak, kind: 'grammar' as const } : rest.pendingBreak
+  return { ...defaultProgress, ...rest, breakNext, pendingBreak: pendingBreak ?? null, stats: { ...defaultProgress.stats, ...rest.stats } }
 }
 
 export const saveProgress = (progress: Progress) => save(KEY, progress)

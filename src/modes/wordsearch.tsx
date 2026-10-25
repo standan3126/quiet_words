@@ -13,6 +13,12 @@ interface Props {
 
 const key = ([x, y]: [number, number]) => `${x},${y}`
 
+// A highlighter stroke from the first letter to the last, drawn under the letters.
+function Mark({ cells, class: cls }: { cells: [number, number][]; class: string }) {
+  const [a, b] = [cells[0], cells[cells.length - 1]]
+  return <line class={cls} x1={a[0] + 0.5} y1={a[1] + 0.5} x2={b[0] + 0.5} y2={b[1] + 0.5} />
+}
+
 export function WordSearch({ seed, breakNumber, onDone }: Props) {
   const search = useMemo(() => makeSearch(seed, breakNumber), [seed, breakNumber])
   const grid = useRef<HTMLDivElement>(null)
@@ -21,13 +27,6 @@ export function WordSearch({ seed, breakNumber, onDone }: Props) {
   const [found, setFound] = useState<string[]>([])
   const done = found.length === search.words.length
   const earned = found.length * COINS_SEARCH_WORD + (done ? COINS_SEARCH_DONE : 0)
-
-  const foundCells = useMemo(() => {
-    const cells = new Set<string>()
-    for (const w of search.words) if (found.includes(w.word)) w.cells.forEach((c) => cells.add(key(c)))
-    return cells
-  }, [found, search])
-  const selected = new Set(selection.map(key))
 
   const cellAt = (e: PointerEvent): [number, number] => {
     // Measure the letters' area, inside the grid's padding.
@@ -89,15 +88,16 @@ export function WordSearch({ seed, breakNumber, onDone }: Props) {
         role="grid"
         aria-label={`Word search: ${search.theme}`}
       >
+        <svg class="search-marks" viewBox={`0 0 ${SIZE} ${SIZE}`} aria-hidden="true">
+          {search.words.map((w, i) => found.includes(w.word) && <Mark cells={w.cells} class={`mark-${i % 4}`} />)}
+          {selection.length > 0 && <Mark cells={selection} class="mark-live" />}
+        </svg>
         {search.rows.map((row, y) =>
-          [...row].map((ch, x) => {
-            const k = `${x},${y}`
-            return (
-              <span class={`search-cell${foundCells.has(k) ? ' found' : ''}${selected.has(k) ? ' selected' : ''}`} data-cell={k}>
-                {ch.toUpperCase()}
-              </span>
-            )
-          }),
+          [...row].map((ch, x) => (
+            <span class="search-cell" data-cell={`${x},${y}`}>
+              {ch.toUpperCase()}
+            </span>
+          )),
         )}
       </div>
 

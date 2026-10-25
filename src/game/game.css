@@ -390,7 +390,7 @@ html.ios-app .play {
   }
 }
 
-/* Breaks: quiz and word search */
+/* Breaks: the word games and word search */
 .break {
   justify-content: center;
   gap: 16px;
@@ -471,7 +471,75 @@ html.ios-app .play {
   margin: 4px 0;
 }
 
+/* Tap-a-word and sentence builder games */
+.tap-prompt {
+  margin: 0 0 10px;
+}
+
+.tap-sentence {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 2px 4px;
+}
+
+.tap-word {
+  padding: 4px 8px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: none;
+  font-size: inherit;
+  transition: background calc(0.3s * var(--anim-scale));
+}
+
+.tap-word.right {
+  background: var(--accent);
+  color: var(--accent-text);
+}
+
+.tap-word.wrong {
+  text-decoration: line-through;
+  opacity: 0.6;
+}
+
+.tap-word:disabled {
+  cursor: default;
+}
+
+.build-line,
+.build-pool {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  font-size: 1.15rem;
+}
+
+.build-line {
+  min-height: 3.4em;
+  margin: 0 0 14px;
+  padding: 8px 0;
+  border-bottom: 2px solid var(--accent);
+}
+
+.build-pool {
+  margin: 0;
+  min-height: 2.6em;
+}
+
+.tap-word.chip,
+.tap-word.placed {
+  border-color: var(--panel-edge);
+  background: var(--tile);
+}
+
+.build-line.done .tap-word.placed {
+  border-color: transparent;
+  background: none;
+}
+
 .search-grid {
+  position: relative;
   display: grid;
   grid-template-columns: repeat(8, 1fr);
   width: min(100%, 420px);
@@ -482,21 +550,57 @@ html.ios-app .play {
 }
 
 .search-cell {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 50%;
   font-size: clamp(1rem, 5vw, 1.5rem);
-  transition: background calc(0.2s * var(--anim-scale));
 }
 
-.search-cell.found {
-  background: var(--accent-soft);
+/* Highlighter strokes over found words and the swipe in progress, laid over the letters' area. */
+.search-marks {
+  position: absolute;
+  inset: 8px;
+  width: calc(100% - 16px);
+  height: calc(100% - 16px);
+  pointer-events: none;
 }
 
-.search-cell.selected {
-  background: var(--accent);
-  color: var(--accent-text);
+.search-marks line {
+  stroke-width: 0.78;
+  stroke-linecap: round;
+  opacity: 0.7;
+}
+
+.search-marks line:not(.mark-live) {
+  animation: mark-in calc(0.3s * var(--anim-scale)) ease-out;
+}
+
+.search-marks .mark-live {
+  stroke: var(--accent);
+  opacity: 0.45;
+}
+
+.search-marks .mark-0 {
+  stroke: var(--mark-1);
+}
+
+.search-marks .mark-1 {
+  stroke: var(--mark-2);
+}
+
+.search-marks .mark-2 {
+  stroke: var(--mark-3);
+}
+
+.search-marks .mark-3 {
+  stroke: var(--mark-4);
+}
+
+@keyframes mark-in {
+  from {
+    opacity: 0;
+  }
 }
 
 .search-words {

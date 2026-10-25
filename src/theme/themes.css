@@ -20,6 +20,10 @@
   --wheel: rgba(250, 246, 236, 0.8);
   --trace: #5f8a68;
   --warm: #c98a3a;
+  --mark-1: #a9c4a5; /* highlighter colours for found words in the word search */
+  --mark-2: #e8cf7a;
+  --mark-3: #e9b38f;
+  --mark-4: #c9b6d8;
   --scene-dim: 0.12;
   --anim-scale: 1;
   color-scheme: light;
@@ -42,6 +46,10 @@
   --wheel: rgba(36, 16, 0, 0.85);
   --trace: #d07000;
   --warm: #e08800;
+  --mark-1: #6a3400;
+  --mark-2: #7a5200;
+  --mark-3: #7a2a00;
+  --mark-4: #5a4400;
   --scene-dim: 0.45;
   --anim-scale: 1.6;
   color-scheme: dark;
