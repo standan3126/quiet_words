@@ -1,0 +1,467 @@
+{
+ "totalLevels": 990,
+ "packs": [
+  {
+   "id": 1,
+   "name": "Clover Hill",
+   "journey": "Meadow",
+   "firstLevel": 1,
+   "levelCount": 15
+  },
+  {
+   "id": 2,
+   "name": "Dandelion Field",
+   "journey": "Meadow",
+   "firstLevel": 16,
+   "levelCount": 15
+  },
+  {
+   "id": 3,
+   "name": "Honeybee Lane",
+   "journey": "Meadow",
+   "firstLevel": 31,
+   "levelCount": 15
+  },
+  {
+   "id": 4,
+   "name": "Wildflower Rise",
+   "journey": "Meadow",
+   "firstLevel": 46,
+   "levelCount": 15
+  },
+  {
+   "id": 5,
+   "name": "Buttercup Vale",
+   "journey": "Meadow",
+   "firstLevel": 61,
+   "levelCount": 15
+  },
+  {
+   "id": 6,
+   "name": "Lark Meadow",
+   "journey": "Meadow",
+   "firstLevel": 76,
+   "levelCount": 15
+  },
+  {
+   "id": 7,
+   "name": "Poppy Bank",
+   "journey": "Meadow",
+   "firstLevel": 91,
+   "levelCount": 15
+  },
+  {
+   "id": 8,
+   "name": "Daisy Hollow",
+   "journey": "Meadow",
+   "firstLevel": 106,
+   "levelCount": 15
+  },
+  {
+   "id": 9,
+   "name": "Hayfield Gate",
+   "journey": "Meadow",
+   "firstLevel": 121,
+   "levelCount": 15
+  },
+  {
+   "id": 10,
+   "name": "Bluebell Green",
+   "journey": "Meadow",
+   "firstLevel": 136,
+   "levelCount": 15
+  },
+  {
+   "id": 11,
+   "name": "Willow Brook",
+   "journey": "Meadow",
+   "firstLevel": 151,
+   "levelCount": 15
+  },
+  {
+   "id": 12,
+   "name": "Fern Hollow",
+   "journey": "Forest",
+   "firstLevel": 166,
+   "levelCount": 15
+  },
+  {
+   "id": 13,
+   "name": "Mossy Path",
+   "journey": "Forest",
+   "firstLevel": 181,
+   "levelCount": 15
+  },
+  {
+   "id": 14,
+   "name": "Cedar Grove",
+   "journey": "Forest",
+   "firstLevel": 196,
+   "levelCount": 15
+  },
+  {
+   "id": 15,
+   "name": "Birch Glade",
+   "journey": "Forest",
+   "firstLevel": 211,
+   "levelCount": 15
+  },
+  {
+   "id": 16,
+   "name": "Owl Wood",
+   "journey": "Forest",
+   "firstLevel": 226,
+   "levelCount": 15
+  },
+  {
+   "id": 17,
+   "name": "Pine Ridge",
+   "journey": "Forest",
+   "firstLevel": 241,
+   "levelCount": 15
+  },
+  {
+   "id": 18,
+   "name": "Maple Trail",
+   "journey": "Forest",
+   "firstLevel": 256,
+   "levelCount": 15
+  },
+  {
+   "id": 19,
+   "name": "Acorn Dell",
+   "journey": "Forest",
+   "firstLevel": 271,
+   "levelCount": 15
+  },
+  {
+   "id": 20,
+   "name": "Misty Thicket",
+   "journey": "Forest",
+   "firstLevel": 286,
+   "levelCount": 15
+  },
+  {
+   "id": 21,
+   "name": "Old Oak Clearing",
+   "journey": "Forest",
+   "firstLevel": 301,
+   "levelCount": 15
+  },
+  {
+   "id": 22,
+   "name": "Elder Creek",
+   "journey": "Forest",
+   "firstLevel": 316,
+   "levelCount": 15
+  },
+  {
+   "id": 23,
+   "name": "Driftwood Bay",
+   "journey": "Coast",
+   "firstLevel": 331,
+   "levelCount": 15
+  },
+  {
+   "id": 24,
+   "name": "Seashell Cove",
+   "journey": "Coast",
+   "firstLevel": 346,
+   "levelCount": 15
+  },
+  {
+   "id": 25,
+   "name": "Tidepool Point",
+   "journey": "Coast",
+   "firstLevel": 361,
+   "levelCount": 15
+  },
+  {
+   "id": 26,
+   "name": "Gull Rock",
+   "journey": "Coast",
+   "firstLevel": 376,
+   "levelCount": 15
+  },
+  {
+   "id": 27,
+   "name": "Sandpiper Beach",
+   "journey": "Coast",
+   "firstLevel": 391,
+   "levelCount": 15
+  },
+  {
+   "id": 28,
+   "name": "Lighthouse Bluff",
+   "journey": "Coast",
+   "firstLevel": 406,
+   "levelCount": 15
+  },
+  {
+   "id": 29,
+   "name": "Kelp Shallows",
+   "journey": "Coast",
+   "firstLevel": 421,
+   "levelCount": 15
+  },
+  {
+   "id": 30,
+   "name": "Sea Glass Shore",
+   "journey": "Coast",
+   "firstLevel": 436,
+   "levelCount": 15
+  },
+  {
+   "id": 31,
+   "name": "Pebble Strand",
+   "journey": "Coast",
+   "firstLevel": 451,
+   "levelCount": 15
+  },
+  {
+   "id": 32,
+   "name": "Harbor Light",
+   "journey": "Coast",
+   "firstLevel": 466,
+   "levelCount": 15
+  },
+  {
+   "id": 33,
+   "name": "Dune Grass Way",
+   "journey": "Coast",
+   "firstLevel": 481,
+   "levelCount": 15
+  },
+  {
+   "id": 34,
+   "name": "Alpine Lake",
+   "journey": "Mountain",
+   "firstLevel": 496,
+   "levelCount": 15
+  },
+  {
+   "id": 35,
+   "name": "Glacier Pass",
+   "journey": "Mountain",
+   "firstLevel": 511,
+   "levelCount": 15
+  },
+  {
+   "id": 36,
+   "name": "Eagle Crest",
+   "journey": "Mountain",
+   "firstLevel": 526,
+   "levelCount": 15
+  },
+  {
+   "id": 37,
+   "name": "Summit Meadow",
+   "journey": "Mountain",
+   "firstLevel": 541,
+   "levelCount": 15
+  },
+  {
+   "id": 38,
+   "name": "Snowmelt Falls",
+   "journey": "Mountain",
+   "firstLevel": 556,
+   "levelCount": 15
+  },
+  {
+   "id": 39,
+   "name": "Granite Ridge",
+   "journey": "Mountain",
+   "firstLevel": 571,
+   "levelCount": 15
+  },
+  {
+   "id": 40,
+   "name": "Edelweiss Slope",
+   "journey": "Mountain",
+   "firstLevel": 586,
+   "levelCount": 15
+  },
+  {
+   "id": 41,
+   "name": "Cloudline Trail",
+   "journey": "Mountain",
+   "firstLevel": 601,
+   "levelCount": 15
+  },
+  {
+   "id": 42,
+   "name": "Marmot Basin",
+   "journey": "Mountain",
+   "firstLevel": 616,
+   "levelCount": 15
+  },
+  {
+   "id": 43,
+   "name": "Larch Valley",
+   "journey": "Mountain",
+   "firstLevel": 631,
+   "levelCount": 15
+  },
+  {
+   "id": 44,
+   "name": "Echo Peak",
+   "journey": "Mountain",
+   "firstLevel": 646,
+   "levelCount": 15
+  },
+  {
+   "id": 45,
+   "name": "Sandstone Arch",
+   "journey": "Desert",
+   "firstLevel": 661,
+   "levelCount": 15
+  },
+  {
+   "id": 46,
+   "name": "Mesa Sunset",
+   "journey": "Desert",
+   "firstLevel": 676,
+   "levelCount": 15
+  },
+  {
+   "id": 47,
+   "name": "Saguaro Flats",
+   "journey": "Desert",
+   "firstLevel": 691,
+   "levelCount": 15
+  },
+  {
+   "id": 48,
+   "name": "Red Canyon",
+   "journey": "Desert",
+   "firstLevel": 706,
+   "levelCount": 15
+  },
+  {
+   "id": 49,
+   "name": "Oasis Spring",
+   "journey": "Desert",
+   "firstLevel": 721,
+   "levelCount": 15
+  },
+  {
+   "id": 50,
+   "name": "Dune Sea",
+   "journey": "Desert",
+   "firstLevel": 736,
+   "levelCount": 15
+  },
+  {
+   "id": 51,
+   "name": "Juniper Wash",
+   "journey": "Desert",
+   "firstLevel": 751,
+   "levelCount": 15
+  },
+  {
+   "id": 52,
+   "name": "Painted Hills",
+   "journey": "Desert",
+   "firstLevel": 766,
+   "levelCount": 15
+  },
+  {
+   "id": 53,
+   "name": "Cactus Bloom",
+   "journey": "Desert",
+   "firstLevel": 781,
+   "levelCount": 15
+  },
+  {
+   "id": 54,
+   "name": "Copper Bluff",
+   "journey": "Desert",
+   "firstLevel": 796,
+   "levelCount": 15
+  },
+  {
+   "id": 55,
+   "name": "Mirage Basin",
+   "journey": "Desert",
+   "firstLevel": 811,
+   "levelCount": 15
+  },
+  {
+   "id": 56,
+   "name": "Firefly Meadow",
+   "journey": "Night Sky",
+   "firstLevel": 826,
+   "levelCount": 15
+  },
+  {
+   "id": 57,
+   "name": "Moonlit Lake",
+   "journey": "Night Sky",
+   "firstLevel": 841,
+   "levelCount": 15
+  },
+  {
+   "id": 58,
+   "name": "Aurora Field",
+   "journey": "Night Sky",
+   "firstLevel": 856,
+   "levelCount": 15
+  },
+  {
+   "id": 59,
+   "name": "Starfall Ridge",
+   "journey": "Night Sky",
+   "firstLevel": 871,
+   "levelCount": 15
+  },
+  {
+   "id": 60,
+   "name": "Campfire Cove",
+   "journey": "Night Sky",
+   "firstLevel": 886,
+   "levelCount": 15
+  },
+  {
+   "id": 61,
+   "name": "Milky Way Camp",
+   "journey": "Night Sky",
+   "firstLevel": 901,
+   "levelCount": 15
+  },
+  {
+   "id": 62,
+   "name": "Lantern Dock",
+   "journey": "Night Sky",
+   "firstLevel": 916,
+   "levelCount": 15
+  },
+  {
+   "id": 63,
+   "name": "Owl Moon Wood",
+   "journey": "Night Sky",
+   "firstLevel": 931,
+   "levelCount": 15
+  },
+  {
+   "id": 64,
+   "name": "Comet Hill",
+   "journey": "Night Sky",
+   "firstLevel": 946,
+   "levelCount": 15
+  },
+  {
+   "id": 65,
+   "name": "Twilight Pier",
+   "journey": "Night Sky",
+   "firstLevel": 961,
+   "levelCount": 15
+  },
+  {
+   "id": 66,
+   "name": "Quiet Harbor",
+   "journey": "Night Sky",
+   "firstLevel": 976,
+   "levelCount": 15
+  }
+ ]
+}

@@ -1,0 +1,507 @@
+.play {
+  height: 100dvh;
+  max-width: 520px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  padding: max(12px, env(safe-area-inset-top)) 16px max(12px, env(safe-area-inset-bottom));
+  position: relative;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.play-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Title and coins sit on soft panels so they stay readable over any photo. */
+.play-title {
+  flex: 1;
+  text-align: center;
+  line-height: 1.25;
+  padding: 4px 12px;
+  border-radius: 16px;
+  background: var(--panel);
+}
+
+.coins {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: var(--panel);
+  color: var(--warm);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Grid */
+.grid-box {
+  flex: 1 1 auto;
+  min-height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 0 4px;
+}
+
+.grid {
+  position: relative;
+}
+
+.cell {
+  position: absolute;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--panel-edge);
+  border-radius: 22%;
+  background: var(--tile);
+  color: var(--tile-text);
+  line-height: 1;
+  cursor: default;
+  transition: background calc(0.3s * var(--anim-scale));
+}
+
+.cell.found {
+  background: var(--tile-filled);
+  border-color: transparent;
+}
+
+/* The detached challenge row */
+.cell.challenge.hidden {
+  border: 1.5px dashed var(--warm);
+}
+
+.cell.revealed {
+  color: var(--text-soft);
+}
+
+.cell.flash-new {
+  animation: settle calc(0.45s * var(--anim-scale)) ease-out both;
+}
+
+.cell.flash-repeat {
+  animation: shimmer calc(0.7s * var(--anim-scale)) ease-in-out;
+}
+
+.grid.targeting .cell.hidden {
+  cursor: pointer;
+  border: 2px dashed var(--accent);
+  animation: breathe calc(2.4s * var(--anim-scale)) ease-in-out infinite;
+}
+
+@keyframes settle {
+  from {
+    transform: scale(0.6);
+    opacity: 0.2;
+  }
+}
+
+/* brightness() scales channels, so a colour with no blue still has none. */
+@keyframes shimmer {
+  50% {
+    filter: brightness(1.35);
+  }
+}
+
+@keyframes breathe {
+  50% {
+    opacity: 0.55;
+  }
+}
+
+/* Word being traced, then how it landed */
+.preview {
+  height: 42px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 3px;
+}
+
+.preview span {
+  min-width: 30px;
+  padding: 4px 6px;
+  border-radius: 8px;
+  background: var(--accent);
+  color: var(--accent-text);
+  text-align: center;
+  font-size: 1.15rem;
+}
+
+.preview.answer,
+.preview.bonus,
+.preview.repeat,
+.preview.invalid {
+  animation: drift calc(0.9s * var(--anim-scale)) ease-in forwards;
+}
+
+.preview.invalid span {
+  background: var(--accent-soft);
+  color: var(--text-soft);
+}
+
+.preview.bonus span {
+  background: var(--warm);
+}
+
+@keyframes drift {
+  60% {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+
+.message {
+  height: 22px;
+  text-align: center;
+  font-size: 0.9rem;
+  font-style: italic;
+  color: var(--text-soft);
+  animation: fade-in calc(0.3s * var(--anim-scale)) ease-out;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/* Wheel */
+.wheel-row {
+  display: flex;
+  justify-content: center;
+}
+
+.wheel {
+  width: min(76vw, 300px, 36dvh);
+  aspect-ratio: 1;
+  display: block;
+  touch-action: none;
+}
+
+.wheel-bg {
+  fill: var(--wheel);
+  stroke: var(--panel-edge);
+}
+
+.wheel-letter {
+  transition: transform calc(0.45s * var(--anim-scale)) ease-in-out;
+}
+
+.wheel-letter circle {
+  fill: transparent;
+  transition: fill calc(0.15s * var(--anim-scale));
+}
+
+.wheel-letter text {
+  fill: var(--text);
+  text-anchor: middle;
+  font-family: inherit;
+  pointer-events: none;
+}
+
+.wheel-letter.active circle {
+  fill: var(--accent);
+}
+
+.wheel-letter.active text {
+  fill: var(--accent-text);
+}
+
+.wheel-trace {
+  fill: none;
+  stroke: var(--trace);
+  stroke-width: 9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.65;
+}
+
+/* Tools */
+.tools {
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+  padding-top: 10px;
+}
+
+.tool {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 8px 4px;
+  border-radius: 16px;
+  border: 1px solid var(--panel-edge);
+  background: var(--panel);
+}
+
+.tool small {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 0.75rem;
+  color: var(--text-soft);
+}
+
+.tool:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.tool.free {
+  border: 2px solid var(--warm);
+  animation: breathe calc(3s * var(--anim-scale)) ease-in-out infinite;
+}
+
+.tool.on {
+  background: var(--accent);
+  color: var(--accent-text);
+}
+
+.tool.on small {
+  color: var(--accent-text);
+}
+
+/* Sheets and overlays */
+.sheet {
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  bottom: max(84px, calc(env(safe-area-inset-bottom) + 72px));
+  z-index: 2;
+  animation: rise calc(0.3s * var(--anim-scale)) ease-out;
+}
+
+.sheet p {
+  line-height: 1.5;
+}
+
+.word-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.word-chip {
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--panel-edge);
+  background: var(--tile);
+}
+
+.meaning h3 {
+  color: var(--text);
+  margin-bottom: 4px;
+}
+
+.meaning p {
+  margin-top: 0;
+}
+
+.cell.found {
+  cursor: pointer;
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.35);
+  animation: fade-in calc(0.6s * var(--anim-scale)) ease-out;
+}
+
+.overlay .card {
+  width: min(100%, 360px);
+  text-align: center;
+  padding: 28px 20px;
+  animation: rise calc(0.6s * var(--anim-scale)) ease-out;
+}
+
+.overlay .card h2 {
+  font-size: 2rem;
+  margin: 4px 0 8px;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+
+.primary-button {
+  display: block;
+  width: 100%;
+  margin-top: 16px;
+  padding: 14px;
+  border: none;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-text);
+  font-size: 1.05rem;
+}
+
+.text-button {
+  display: block;
+  margin: 8px auto 0;
+  padding: 10px 16px;
+  border: none;
+  background: none;
+  color: var(--text-soft);
+}
+
+.end {
+  margin: auto 0;
+  text-align: center;
+}
+
+/* Daily puzzle: a butterfly resting on one word, flexing its wings now and then. */
+.cell .butterfly {
+  position: absolute;
+  top: -22%;
+  right: -22%;
+  color: var(--warm);
+  display: flex;
+  animation: rest calc(4s * var(--anim-scale)) ease-in-out infinite;
+}
+
+@keyframes rest {
+  50% {
+    transform: scaleX(0.7) rotate(-6deg);
+  }
+}
+
+/* Breaks: quiz and word search */
+.break {
+  justify-content: center;
+  gap: 16px;
+}
+
+.break-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 2px 4px 2px 16px;
+  border-radius: 999px;
+  background: var(--panel);
+}
+
+.break-header .text-button {
+  margin: 0;
+}
+
+.break-card {
+  text-align: center;
+  padding: 24px 18px;
+}
+
+.quiz-sentence {
+  font-size: 1.3rem;
+  line-height: 1.6;
+  margin: 0 0 20px;
+}
+
+.quiz-blank {
+  display: inline-block;
+  min-width: 4.5em;
+  border-bottom: 2px solid var(--accent);
+  color: var(--accent);
+}
+
+.quiz-blank.filled {
+  border-bottom-color: transparent;
+}
+
+.quiz-choices {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.quiz-choice {
+  padding: 14px;
+  border-radius: 999px;
+  border: 1px solid var(--panel-edge);
+  background: var(--tile);
+  font-size: 1.1rem;
+  transition: background calc(0.3s * var(--anim-scale)), opacity calc(0.3s * var(--anim-scale));
+}
+
+.quiz-choice.right {
+  background: var(--accent);
+  color: var(--accent-text);
+}
+
+.quiz-choice.wrong {
+  text-decoration: line-through;
+  opacity: 0.6;
+}
+
+.quiz-choice.other {
+  opacity: 0.35;
+}
+
+.quiz-feedback {
+  margin-top: 16px;
+  animation: rise calc(0.4s * var(--anim-scale)) ease-out;
+}
+
+.quiz-feedback p {
+  margin: 4px 0;
+}
+
+.search-grid {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  width: min(100%, 420px);
+  aspect-ratio: 1;
+  margin: 0 auto;
+  padding: 8px;
+  touch-action: none;
+}
+
+.search-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-size: clamp(1rem, 5vw, 1.5rem);
+  transition: background calc(0.2s * var(--anim-scale));
+}
+
+.search-cell.found {
+  background: var(--accent-soft);
+}
+
+.search-cell.selected {
+  background: var(--accent);
+  color: var(--accent-text);
+}
+
+.search-words {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px 14px;
+  font-size: 1.05rem;
+}
+
+.search-words li.found {
+  text-decoration: line-through;
+  color: var(--text-soft);
+}

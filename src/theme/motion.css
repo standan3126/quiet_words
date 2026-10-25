@@ -1,0 +1,167 @@
+/* Life over the painted scenes. Long durations and soft easing keep it slow and lazy;
+   only transform and opacity animate, which keeps it cheap on battery. */
+.scene-motion {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.critter {
+  position: absolute;
+  left: 0;
+  top: 0;
+  will-change: transform;
+}
+
+/* Birds: glide across, with an unhurried wingbeat. */
+.bird {
+  animation: bird-cross var(--travel) linear var(--delay) infinite;
+}
+
+.bird .critter-inner {
+  transform: scaleX(var(--flip));
+}
+
+.bird-shape {
+  width: var(--size);
+  height: calc(var(--size) / 2);
+  overflow: visible;
+}
+
+.bird-shape .wing {
+  fill: none;
+  stroke: #4f5d55;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  opacity: 0.55;
+  transform-origin: 12px 7px;
+  animation: flap var(--flap) ease-in-out infinite;
+}
+
+/* The bird is on screen for the first 70% of the cycle, then away for a while. */
+@keyframes bird-cross {
+  0% {
+    transform: translate(var(--from), var(--y0));
+  }
+  70% {
+    transform: translate(var(--to), var(--y1));
+  }
+  100% {
+    transform: translate(var(--to), var(--y1));
+  }
+}
+
+@keyframes flap {
+  50% {
+    transform: scaleY(0.35);
+  }
+}
+
+/* Bumblebees: drift between three spots, bobbing gently. */
+.bee {
+  animation: wander var(--travel) ease-in-out var(--delay) infinite alternate;
+}
+
+.bee .critter-inner {
+  animation: bob var(--bob) ease-in-out infinite alternate;
+}
+
+.bee-shape {
+  width: 26px;
+  height: 21px;
+}
+
+.bee-wing {
+  fill: #ffffff;
+  opacity: 0.55;
+}
+
+@keyframes wander {
+  0% {
+    transform: translate(var(--x0), var(--y0));
+  }
+  50% {
+    transform: translate(var(--x1), var(--y1));
+  }
+  100% {
+    transform: translate(var(--x2), var(--y2));
+  }
+}
+
+@keyframes bob {
+  to {
+    transform: translateY(-6px) rotate(4deg);
+  }
+}
+
+/* Dandelion fluff: rises across the scene on the breeze, swaying and turning slowly. */
+.fluff {
+  animation: drift var(--travel) linear var(--delay) infinite;
+}
+
+.fluff .critter-inner {
+  animation: sway var(--sway) ease-in-out infinite alternate;
+}
+
+.fluff-shape {
+  width: var(--size);
+  height: var(--size);
+  stroke: #ffffff;
+  stroke-width: 0.8;
+  fill: #ffffff;
+  opacity: 0.75;
+}
+
+@keyframes drift {
+  0% {
+    transform: translate(var(--x0), var(--y0));
+    opacity: 0;
+  }
+  8%,
+  85% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(var(--x1), var(--y1));
+    opacity: 0;
+  }
+}
+
+@keyframes sway {
+  from {
+    transform: translateX(-14px) rotate(-25deg);
+  }
+  to {
+    transform: translateX(14px) rotate(25deg);
+  }
+}
+
+/* Fireflies: amber points that wander and slowly glow and fade. No blue in the glow. */
+.firefly {
+  animation: wander var(--travel) ease-in-out var(--delay) infinite alternate;
+}
+
+.firefly .critter-inner {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #ffb000;
+  box-shadow: 0 0 8px 3px rgba(255, 140, 0, 0.55);
+  animation: glow var(--glow) ease-in-out var(--glow-delay) infinite alternate;
+}
+
+@keyframes glow {
+  from {
+    opacity: 0.1;
+  }
+  to {
+    opacity: 0.9;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scene-motion {
+    display: none;
+  }
+}

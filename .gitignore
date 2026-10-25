@@ -1,0 +1,33 @@
+# Build output and tools
+node_modules
+dist
+dist-play
+dev-dist
+test-results
+playwright-report
+audio-previews
+
+# Large download, re-fetched when needed (see data/SOURCES.md)
+data/raw/wordnet/
+
+# --- Personal: never published ---
+# The original research notes for this project.
+wordgame.md
+# Game backups hold progress and family photos.
+quiet-words-backup-*.json
+*backup*.json
+# Any personal photos or notes kept beside the project.
+photos/
+private/
+personal/
+*.local
+*.local.*
+# Secrets and keys, just in case.
+.env
+.env.*
+*.pem
+*.key
+id_*
+*_deploy
+*_deploy.pub
+.DS_Store

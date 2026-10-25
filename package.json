@@ -1,0 +1,32 @@
+{
+  "name": "quiet-words",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "e2e": "playwright test",
+    "lexicon": "tsx tools/build-lexicon.ts",
+    "levels": "tsx tools/generate-levels.ts",
+    "show": "tsx tools/show-level.ts",
+    "definitions": "tsx tools/build-definitions.ts",
+    "scenery": "tsx tools/build-scenery.ts"
+  },
+  "dependencies": {
+    "idb-keyval": "^6.3.0",
+    "preact": "^10.29.8"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.64.1",
+    "@preact/preset-vite": "^2.10.6",
+    "@types/node": "^24.19.2",
+    "tsx": "^4.23.15",
+    "typescript": "~6.0.3",
+    "vite": "^8.3.4",
+    "vite-plugin-pwa": "^2.0.0",
+    "vitest": "^5.0.5"
+  }
+}

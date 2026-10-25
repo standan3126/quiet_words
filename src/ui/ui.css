@@ -1,0 +1,483 @@
+.screen {
+  min-height: 100%;
+  padding: max(16px, env(safe-area-inset-top)) 16px max(24px, env(safe-area-inset-bottom));
+  max-width: 520px;
+  margin: 0 auto;
+  position: relative;
+}
+
+.soft {
+  color: var(--text-soft);
+}
+
+h1,
+h2,
+h3 {
+  font-weight: normal;
+  letter-spacing: 0.02em;
+  margin: 0;
+}
+
+/* Home */
+.home {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 48px;
+}
+
+.home-title {
+  text-align: center;
+}
+
+.home-title h1 {
+  font-size: 2.6rem;
+}
+
+.home-title p {
+  margin-top: 8px;
+  font-style: italic;
+}
+
+.home-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.home-menu button {
+  padding: 16px;
+  border-radius: 999px;
+  border: 1px solid var(--panel-edge);
+  background: var(--panel);
+  font-size: 1.1rem;
+  transition: opacity calc(0.3s * var(--anim-scale));
+}
+
+.home-menu button.primary {
+  background: var(--accent);
+  color: var(--accent-text);
+  border-color: transparent;
+}
+
+.home-menu button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.icon-button {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--panel-edge);
+  background: var(--panel);
+  font-size: 1.3rem;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.theme-toggle {
+  position: absolute;
+  top: max(16px, env(safe-area-inset-top));
+  right: 16px;
+}
+
+/* Settings */
+.screen-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--panel-edge);
+  border-radius: 18px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.panel h3 {
+  font-size: 1.05rem;
+  margin-bottom: 12px;
+  color: var(--text-soft);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 48px;
+}
+
+.row small {
+  display: block;
+  font-size: 0.8rem;
+}
+
+/* Native controls draw white/grey parts that leak blue light, so both are fully custom. */
+.row input[type='range'] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 45%;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--accent-soft);
+}
+
+.row input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: none;
+}
+
+.row input[type='range']::-moz-range-thumb {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: none;
+}
+
+.row input[type='checkbox'] {
+  appearance: none;
+  -webkit-appearance: none;
+  flex: none;
+  width: 48px;
+  height: 28px;
+  margin: 0;
+  border-radius: 14px;
+  background: var(--accent-soft);
+  position: relative;
+  transition: background calc(0.25s * var(--anim-scale));
+}
+
+.row input[type='checkbox']::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--bg);
+  transition: transform calc(0.25s * var(--anim-scale));
+}
+
+.row input[type='checkbox']:checked {
+  background: var(--accent);
+}
+
+.row input[type='checkbox']:checked::after {
+  transform: translateX(20px);
+}
+
+.times {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.times input {
+  font: inherit;
+  background: var(--tile);
+  color: var(--text);
+  border: 1px solid var(--panel-edge);
+  border-radius: 8px;
+  padding: 4px 6px;
+}
+
+.segmented {
+  display: flex;
+  border: 1px solid var(--panel-edge);
+  border-radius: 999px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.segmented button {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  background: transparent;
+}
+
+.segmented button.selected {
+  background: var(--accent);
+  color: var(--accent-text);
+}
+
+.segmented.compact {
+  flex: none;
+  margin: 0;
+}
+
+.segmented.compact button {
+  flex: none;
+  padding: 8px 10px;
+  font-size: 0.9rem;
+}
+
+.sleep-row {
+  flex-wrap: wrap;
+  padding: 6px 0;
+}
+
+/* Sleep timer: the screen darkens over the same two minutes the sound fades. */
+.sleep-dim {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: dim 120s linear forwards;
+}
+
+.sleep-dim.asleep {
+  animation: none;
+  opacity: 0.94;
+}
+
+.sleep-dim p {
+  color: var(--text-soft);
+  font-style: italic;
+}
+
+@keyframes dim {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 0.94;
+  }
+}
+
+.note {
+  font-size: 0.85rem;
+  margin: 8px 0 0;
+}
+
+/* Scenery behind the home and play screens */
+.scene {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: var(--bg);
+}
+
+.scene-media {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  animation: scene-in calc(1.2s * var(--anim-scale)) ease-out;
+}
+
+/* Shade the top (header, grid) and bottom (wheel) a little more than the middle. */
+.scene-shade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(rgba(0, 0, 0, calc(var(--scene-dim) + 0.1)), rgba(0, 0, 0, var(--scene-dim)) 40%, rgba(0, 0, 0, calc(var(--scene-dim) + 0.15)));
+}
+
+/* Painted scenes are already toned for their theme; photos need more shade at night. */
+.scene.painted .scene-shade {
+  opacity: 0.45;
+}
+
+/* Album slideshow: each new photo fades in slowly over the last. */
+.scene-media.slide {
+  animation: scene-in 5s ease-in-out;
+}
+
+@keyframes scene-in {
+  from {
+    opacity: 0;
+  }
+}
+
+.home-title {
+  text-shadow: 0 1px 12px var(--bg);
+}
+
+/* Photos in settings */
+.add-photos {
+  width: 100%;
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 999px;
+  border: 1px dashed var(--accent);
+  background: transparent;
+}
+
+.notice {
+  margin-top: 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--tile);
+  border: 1px solid var(--warm);
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
+.notice p {
+  margin: 0 0 8px;
+}
+
+.thumbs {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+  gap: 8px;
+  margin: 12px 0 4px;
+}
+
+.thumb {
+  position: relative;
+  aspect-ratio: 3 / 4;
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--tile);
+}
+
+.thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.thumb-remove {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border-radius: 50%;
+  border: none;
+  background: var(--panel);
+  line-height: 1;
+}
+
+/* Photo albums */
+.album-name {
+  width: 100%;
+  font-size: 1.1rem;
+}
+
+.album-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  text-align: left;
+  padding: 10px;
+}
+
+.album-card .thumb {
+  width: 56px;
+  flex: none;
+}
+
+.thumb.empty {
+  border: 1px dashed var(--panel-edge);
+}
+
+.album-card-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.confirm {
+  margin-top: 12px;
+  text-align: center;
+}
+
+.danger {
+  color: var(--warm);
+}
+
+/* Postcards */
+.postcard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
+  gap: 10px;
+}
+
+.postcard {
+  margin: 0;
+  aspect-ratio: 3 / 4;
+  position: relative;
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--tile);
+}
+
+.postcard svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.postcard figcaption {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 4px 6px;
+  font-size: 0.75rem;
+  background: var(--panel);
+}
+
+.postcard.locked {
+  border: 1px dashed var(--panel-edge);
+  background: transparent;
+}
+
+.postcard.locked figcaption {
+  background: none;
+  top: 40%;
+  bottom: auto;
+  text-align: center;
+}
+
+.flower-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
+  gap: 12px;
+}
+
+.flower {
+  margin: 0;
+  text-align: center;
+}
+
+.pressed-flower {
+  width: 56px;
+  height: 84px;
+}
+
+.flower figcaption {
+  font-size: 0.72rem;
+}
+
+.steps {
+  margin: 0;
+  padding-left: 1.3em;
+  line-height: 1.6;
+}
+
+.add-photos + .add-photos {
+  margin-top: 8px;
+}

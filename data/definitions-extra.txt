@@ -1,0 +1,62 @@
+# Hand-written definitions for everyday words WordNet doesn't cover (mostly grammar words).
+# Format: word|part of speech|definition. Used when WordNet has no entry.
+aha|interjection|said when you suddenly understand or discover something
+and|conjunction|used to join words or ideas together
+anyone|pronoun|any person at all
+anytime|adverb|at whatever time; whenever you like
+aye|interjection|yes (an old or formal way of saying it)
+bah|interjection|said to show mild scorn or impatience
+cannot|verb|can not; to be unable to
+could|verb|was able to; also used to say something is possible
+during|preposition|throughout, or at some point within, a period of time
+else|adverb|other; different; in addition
+ere|preposition|before (old-fashioned or poetic)
+for|preposition|intended to be given to, used by, or helping
+from|preposition|starting at; coming out of
+gosh|interjection|a mild exclamation of surprise
+heck|interjection|a mild exclamation of annoyance or surprise
+her|pronoun|the woman or girl already mentioned; belonging to her
+hers|pronoun|the one belonging to her
+hey|interjection|a friendly call for attention, or a casual hello
+him|pronoun|the man or boy already mentioned
+how|adverb|in what way; to what degree
+ifs|noun|conditions or doubts, as in "no ifs or buts"
+into|preposition|to the inside of; toward and within
+nor|conjunction|and not; used after "neither"
+oneself|pronoun|a person's own self
+onto|preposition|to a position on top of
+ouch|interjection|said when something hurts a little
+ought|verb|should; used to say what is right or sensible
+our|pronoun|belonging to us
+ours|pronoun|the one belonging to us
+per|preposition|for each, as in "once per day"
+roger|interjection|message received and understood (radio talk)
+she|pronoun|the woman or girl already mentioned
+should|verb|used to say what is right, sensible or expected
+sim|noun|a simulation, often a computer game that imitates real life
+since|preposition|from a past time until now
+stat|noun|a statistic; a number that measures something
+than|conjunction|used when comparing two things
+that|pronoun|the one over there, or the one already mentioned
+the|article|used before a word to point to a particular thing
+their|pronoun|belonging to them
+them|pronoun|the people or things already mentioned
+these|pronoun|the ones here, close by
+they|pronoun|the people or things already mentioned
+this|pronoun|the one here, close by
+those|pronoun|the ones over there
+thy|pronoun|your (old-fashioned or poetic)
+until|preposition|up to the time when
+upon|preposition|on; on top of
+via|preposition|by way of; through
+what|pronoun|which thing; used to ask about something
+when|adverb|at what time
+where|adverb|in or to what place
+with|preposition|together with; having
+would|verb|used to talk about something imagined or wished for
+you|pronoun|the person or people being spoken to
+your|pronoun|belonging to you
+among|preposition|in the middle of; surrounded by
+psych|verb|to get ready in your mind, as in "psych yourself up"
+whose|pronoun|belonging to which person
+yum|interjection|said when something tastes delicious
