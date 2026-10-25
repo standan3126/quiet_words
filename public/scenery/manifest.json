@@ -1,1 +1,18 @@
-[]
+[
+ {
+  "file": "forest-1.jpeg",
+  "journey": "Forest"
+ },
+ {
+  "file": "forest-2.jpeg",
+  "journey": "Forest"
+ },
+ {
+  "file": "meadow-1.jpeg",
+  "journey": "Meadow"
+ },
+ {
+  "file": "meadow-2.jpeg",
+  "journey": "Meadow"
+ }
+]
