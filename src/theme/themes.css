@@ -68,13 +68,11 @@ body {
   background: transparent;
 }
 
-/* Extra room under the clock on an iPhone home-screen app, where iOS hazes the top of the page. */
-html {
-  --top-gap: 0px;
-}
-
-html.ios-app {
-  --top-gap: 40px;
+/* An iPhone home-screen app measures by the full screen (100lvh) to reach the bottom edge. */
+html.ios-app,
+html.ios-app body,
+html.ios-app #app {
+  height: 100lvh;
 }
 
 html.large-text {

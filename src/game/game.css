@@ -4,7 +4,7 @@
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  padding: calc(max(12px, env(safe-area-inset-top)) + var(--top-gap)) 16px max(12px, env(safe-area-inset-bottom));
+  padding: max(12px, env(safe-area-inset-top)) 16px max(12px, env(safe-area-inset-bottom));
   position: relative;
   user-select: none;
   -webkit-user-select: none;
@@ -14,6 +14,12 @@
   display: flex;
   align-items: center;
   gap: 10px;
+}
+
+/* iOS may report no bottom inset here, so keep the tools clear of the home bar regardless. */
+html.ios-app .play {
+  height: 100lvh;
+  padding-bottom: max(28px, env(safe-area-inset-bottom));
 }
 
 /* Title and coins sit on soft panels so they stay readable over any photo. */
