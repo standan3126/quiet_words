@@ -11,11 +11,13 @@ interface Props {
   progress: Progress
   theme: 'day' | 'night'
   onBack: () => void
+  onRevisit: (pack: PackSummary) => void
 }
 
 // A postcard for every place finished, and a pressed flower for every daily puzzle.
-// Nothing to tend, nothing to roll for: it simply fills in as you play.
-export function Postcards({ progress, theme, onBack }: Props) {
+// Nothing to tend, nothing to roll for: it simply fills in as you play. Tapping a postcard
+// plays that place's levels again.
+export function Postcards({ progress, theme, onBack, onRevisit }: Props) {
   const [packs, setPacks] = useState<PackSummary[]>([])
   useEffect(() => {
     loadIndex().then((i) => setPacks(i.packs))
@@ -36,7 +38,7 @@ export function Postcards({ progress, theme, onBack }: Props) {
       </header>
 
       <p class="soft note">
-        {count} of {packs.length} places visited
+        {count} of {packs.length} places visited{count ? ' · tap a postcard to visit again' : ''}
       </p>
       {journeys.map((journey) => (
         <section class="panel">
@@ -46,10 +48,10 @@ export function Postcards({ progress, theme, onBack }: Props) {
               .filter((p) => p.journey === journey)
               .map((p) =>
                 visited(p) ? (
-                  <figure class="postcard">
-                    <PaintedScene journey={p.journey} seed={p.id} night={theme === 'night'} />
-                    <figcaption>{p.name}</figcaption>
-                  </figure>
+                  <button class="postcard" onClick={() => onRevisit(p)} aria-label={`Visit ${p.name} again`}>
+                    <PaintedScene journey={p.journey} seed={p.id} night={theme === 'night'} place={p.name} />
+                    <span class="caption">{p.name}</span>
+                  </button>
                 ) : (
                   <figure class="postcard locked">
                     <figcaption class="soft">Not yet visited</figcaption>

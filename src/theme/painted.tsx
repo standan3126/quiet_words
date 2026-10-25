@@ -1,16 +1,11 @@
 // Painted landscapes drawn in code: the fallback scenery for any journey without images.
-// Each location gets its own variation (seeded by pack id). Night palettes have no blue at
-// all, so these never need the night filter.
+// Each location gets its own variation (seeded by pack id), and places listed in places.tsx
+// get a painting of their own. Night palettes have no blue at all, so these never need the
+// night filter.
 import type { JSX } from 'preact'
 import { useMemo } from 'preact/hooks'
-
-interface Palette {
-  sky: [string, string] // top, horizon
-  glow: string // sun or moon
-  layers: string[] // far to near
-  accent: string // flowers, foam, snow, stars
-  water?: string
-}
+import { PLACES } from './places'
+import { H, rng, ridge, W, type Palette } from './paint-kit'
 
 const PALETTES: Record<string, { day: Palette; night: Palette }> = {
   Meadow: {
@@ -50,37 +45,7 @@ function palette(journey: string, night: boolean): Palette {
   return { ...p, sky: [p.sky[0], lift(p.sky[1])], layers: p.layers.map(lift), water: p.water && lift(p.water) }
 }
 
-const W = 400
-const H = 800
-
-// Small seeded PRNG, so each location always gets the same landscape.
-function rng(seed: number) {
-  let a = (seed * 2654435761) >>> 0
-  return () => {
-    a = (a + 0x6d2b79f5) >>> 0
-    let t = Math.imul(a ^ (a >>> 15), a | 1)
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61)
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
-  }
-}
-
-// A horizon line as a filled shape: a sum of a few sine waves, optionally sharpened into peaks.
-function ridge(r: () => number, baseY: number, amplitude: number, jagged = false): { d: string; tops: [number, number][] } {
-  const waves = [1, 2.3, 5.1].map((f, i) => ({ f, phase: r() * Math.PI * 2, amp: amplitude / (i + 1) }))
-  const points: [number, number][] = []
-  for (let x = 0; x <= W; x += 8) {
-    let y = 0
-    for (const w of waves) {
-      const s = Math.sin((x / W) * Math.PI * w.f + w.phase)
-      y += (jagged ? 1 - Math.abs(s) * 2 : s) * w.amp
-    }
-    points.push([x, baseY - y])
-  }
-  const d = `M0,${H} ` + points.map(([x, y]) => `L${x},${y.toFixed(1)}`).join(' ') + ` L${W},${H} Z`
-  return { d, tops: points }
-}
-
-function scene(journey: string, seed: number, night: boolean) {
+export function scene(journey: string, seed: number, night: boolean, place?: string) {
   const p = palette(journey, night)
   const r = rng(seed)
   const parts: JSX.Element[] = []
@@ -97,6 +62,13 @@ function scene(journey: string, seed: number, night: boolean) {
     const shape = ridge(r, baseY, amplitude, jagged)
     parts.push(<path d={shape.d} fill={color} />)
     return shape
+  }
+
+  // Places with their own painting show what their name says.
+  const paint = place && PLACES[place]
+  if (paint) {
+    paint({ p, r, night, add: (el) => parts.push(el), layer })
+    return { p, parts }
   }
 
   if (journey === 'Coast') {
@@ -145,8 +117,8 @@ function scene(journey: string, seed: number, night: boolean) {
   return { p, parts }
 }
 
-export function PaintedScene({ journey, seed, night }: { journey: string; seed: number; night: boolean }) {
-  const { p, parts } = useMemo(() => scene(journey, seed, night), [journey, seed, night])
+export function PaintedScene({ journey, seed, night, place }: { journey: string; seed: number; night: boolean; place?: string }) {
+  const { p, parts } = useMemo(() => scene(journey, seed, night, place), [journey, seed, night, place])
   // Unique per scene: postcards put many paintings on one page.
   const sky = `painted-sky-${journey.replace(/\s/g, '')}-${seed}-${night ? 'n' : 'd'}`
   return (

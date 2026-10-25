@@ -1,18 +1,22 @@
 [
  {
   "file": "forest-1.jpeg",
-  "journey": "Forest"
+  "journey": "Forest",
+  "time": "day"
  },
  {
   "file": "forest-2.jpeg",
-  "journey": "Forest"
+  "journey": "Forest",
+  "time": "dusk"
  },
  {
   "file": "meadow-1.jpeg",
-  "journey": "Meadow"
+  "journey": "Meadow",
+  "time": "day"
  },
  {
   "file": "meadow-2.jpeg",
-  "journey": "Meadow"
+  "journey": "Meadow",
+  "time": "dusk"
  }
 ]

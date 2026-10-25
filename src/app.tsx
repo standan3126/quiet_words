@@ -6,7 +6,7 @@ import { defaultProgress, loadProgress, saveProgress, type Progress } from './me
 import { defaultSettings, loadSettings, resolveTheme, saveSettings, type Settings } from './meta/settings'
 import { Daily } from './modes/daily'
 import { Journey } from './modes/journey'
-import { pickScene, type SceneImage } from './theme/scenery'
+import { pickScene, sceneTime, type SceneImage } from './theme/scenery'
 import { loadSceneryImages } from './theme/scenery-images'
 import { AlbumsScreen, type AlbumActions } from './ui/albums'
 import { todayKey } from './game/daily'
@@ -29,7 +29,7 @@ export function App() {
   const [ready, setReady] = useState(false)
   const [screen, setScreen] = useState<Screen>('home')
   const [now, setNow] = useState(() => new Date())
-  const [place, setPlace] = useState<{ journey: string; packId: number }>({ journey: 'Meadow', packId: 1 })
+  const [place, setPlace] = useState<{ journey: string; packId: number; name: string }>({ journey: 'Meadow', packId: 1, name: 'Clover Hill' })
   const [albums, setAlbums] = useState<Album[]>([])
   const [images, setImages] = useState<SceneImage[]>([])
   const [sleep, setSleep] = useState<Sleep>({ minutes: null, phase: 'awake' })
@@ -63,12 +63,23 @@ export function App() {
     loaded.current = true
   }, [progress, ready])
 
-  // Scenery and nature sounds follow the location the player is at.
+  // Scenery and nature sounds follow the location the player is at, or is visiting again.
+  const activeLevel = progress.revisit?.level ?? progress.level
   useEffect(() => {
-    if (ready) loadLevel(progress.level).then((l) => l && setPlace({ journey: l.pack.journey, packId: l.pack.id }))
-  }, [progress.level, ready])
+    if (ready) loadLevel(activeLevel).then((l) => l && setPlace({ journey: l.pack.journey, packId: l.pack.id, name: l.pack.name }))
+  }, [activeLevel, ready])
 
   const theme = resolveTheme(settings, now)
+
+  // Daytime or golden-hour pictures. The picture never changes in the middle of a puzzle,
+  // only when a level is finished or away from the puzzle screens.
+  const timeNow = sceneTime(now)
+  const [time, setTime] = useState(timeNow)
+  const inPuzzle = screen === 'play' || screen === 'daily'
+  useEffect(() => {
+    if (!inPuzzle) setTime(timeNow)
+  }, [timeNow, inPuzzle])
+  useEffect(() => setTime(sceneTime(new Date())), [activeLevel])
 
   useEffect(() => audio.update(settings, { journey: place.journey, theme }), [settings, place.journey, theme])
 
@@ -80,8 +91,9 @@ export function App() {
         mode: settings.sceneryMode,
         albumPhotos: albums.find((a) => a.id === settings.activeAlbum)?.photoIds ?? [],
         images,
+        time,
       }),
-    [place, theme, settings.sceneryMode, settings.activeAlbum, albums, images],
+    [place, theme, time, settings.sceneryMode, settings.activeAlbum, albums, images],
   )
 
   const albumActions: AlbumActions = {
@@ -133,15 +145,21 @@ export function App() {
   return (
     <>
       {(screen === 'home' || screen === 'play' || screen === 'daily') && (
-        <SceneBackdrop scene={scene} journey={place.journey} packId={place.packId} theme={theme} motion={settings.sceneMotion} />
+        <SceneBackdrop scene={scene} journey={place.journey} packId={place.packId} place={place.name} theme={theme} motion={settings.sceneMotion} />
       )}
       {screen === 'home' && (
         <Home
           theme={theme}
           ready={ready}
           level={progress.level}
+          revisiting={progress.revisit ? place.name : null}
           dailyDone={progress.flowers.includes(todayKey(now))}
           onNavigate={setScreen}
+          onContinue={() => {
+            // Carrying on with the journey leaves any revisit behind.
+            if (progress.revisit) setProgress((p) => ({ ...p, revisit: null }))
+            setScreen('play')
+          }}
           onToggleTheme={() => update({ themeMode: theme === 'night' ? 'day' : 'night' })}
         />
       )}
@@ -156,9 +174,19 @@ export function App() {
             onSleep: setSleepTimer,
             onHome: () => setScreen('home'),
           }
-          return screen === 'play' ? <Journey {...shared} /> : <Daily {...shared} />
+          return screen === 'play' ? <Journey {...shared} onPostcards={() => setScreen('postcards')} /> : <Daily {...shared} />
         })()}
-      {screen === 'postcards' && <Postcards progress={progress} theme={theme} onBack={() => setScreen('home')} />}
+      {screen === 'postcards' && (
+        <Postcards
+          progress={progress}
+          theme={theme}
+          onBack={() => setScreen('home')}
+          onRevisit={(pack) => {
+            setProgress((p) => ({ ...p, revisit: { packId: pack.id, level: pack.firstLevel, current: null } }))
+            setScreen('play')
+          }}
+        />
+      )}
       {screen === 'settings' && (
         <SettingsScreen
           settings={settings}

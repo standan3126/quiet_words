@@ -1,5 +1,6 @@
 // The main journey: one level after another through the locations, with an untimed quiz
-// or word search break every so often.
+// or word search break every so often. Also plays a finished place again from its postcard,
+// without breaks and without moving the journey along.
 import { useEffect, useState } from 'preact/hooks'
 import { emptyProgress, type LevelProgress } from '../game/level-state'
 import { loadLevel, type LoadedLevel } from '../game/levels'
@@ -18,27 +19,35 @@ interface Props {
   onSettings: (patch: Partial<Settings>) => void
   onSleep: (minutes: SleepMinutes) => void
   onHome: () => void
+  onPostcards: () => void
 }
 
-export function Journey({ progress, onProgress, ...common }: Props) {
+export function Journey({ progress, onProgress, onPostcards, ...common }: Props) {
   const [loaded, setLoaded] = useState<LoadedLevel | 'end' | null>(null)
+  const visit = progress.revisit
+  const levelId = visit ? visit.level : progress.level
+  const lp = visit ? visit.current : progress.current
+
+  // Saved mid-level state lives with the journey, or with the revisit while there is one.
+  const withCurrent = (p: Progress, current: LevelProgress | null): Progress =>
+    p.revisit ? { ...p, revisit: { ...p.revisit, current } } : { ...p, current }
 
   useEffect(() => {
     let cancelled = false
     setLoaded(null)
-    loadLevel(progress.level).then((l) => {
+    loadLevel(levelId).then((l) => {
       if (cancelled) return
       if (!l) return setLoaded('end')
-      if (progress.current?.levelId !== l.level.id) onProgress((p) => ({ ...p, current: emptyProgress(l.level.id) }))
+      if (lp?.levelId !== l.level.id) onProgress((p) => withCurrent(p, emptyProgress(l.level.id)))
       setLoaded(l)
     })
     return () => {
       cancelled = true
     }
-  }, [progress.level])
+  }, [levelId])
 
   const brk = progress.pendingBreak
-  if (brk) {
+  if (brk && !visit) {
     const finishBreak = (coins: number, asked = 0) =>
       onProgress((p) => ({ ...p, coins: p.coins + coins, pendingBreak: null, quizNext: p.quizNext + asked }))
     return brk.kind === 'quiz' ? (
@@ -62,14 +71,21 @@ export function Journey({ progress, onProgress, ...common }: Props) {
     )
   }
 
-  const lp = progress.current
   if (!loaded || !lp || lp.levelId !== loaded.level.id) return <main class="play" aria-busy="true" />
   const { level, pack, isLastInPack } = loaded
 
   const commit = (next: LevelProgress, coins: number, stats: Partial<Stats>) =>
-    onProgress((p) => ({ ...p, current: next, coins: p.coins + coins, stats: addStats(p.stats, stats) }))
+    onProgress((p) => ({ ...withCurrent(p, next), coins: p.coins + coins, stats: addStats(p.stats, stats) }))
 
-  const nextLevel = (skipped: boolean) =>
+  const nextLevel = (skipped: boolean) => {
+    if (visit) {
+      // The end of a revisit leads back to the postcards.
+      if (isLastInPack) {
+        onProgress((p) => ({ ...p, revisit: null }))
+        return onPostcards()
+      }
+      return onProgress((p) => (p.revisit ? { ...p, revisit: { ...p.revisit, level: p.revisit.level + 1, current: null } } : p))
+    }
     onProgress((p) => ({
       ...p,
       level: p.level + 1,
@@ -77,6 +93,9 @@ export function Journey({ progress, onProgress, ...common }: Props) {
       pendingBreak: breakAfter(p.level),
       stats: addStats(p.stats, { skipped: skipped ? 1 : 0 }),
     }))
+  }
+
+  const note = visit ? (isLastInPack ? `That's ${pack.name} again · back to your postcards` : `Visiting ${pack.name} again`) : isLastInPack ? `You've finished ${pack.name} · a new postcard` : pack.name
 
   return (
     <Board
@@ -84,11 +103,11 @@ export function Journey({ progress, onProgress, ...common }: Props) {
       {...common}
       level={level}
       title={pack.name}
-      subtitle={`Level ${level.id}`}
+      subtitle={visit ? `Level ${level.id - pack.firstLevel + 1} of ${pack.levelCount} · visiting again` : `Level ${level.id}`}
       lp={lp}
       coins={progress.coins}
       completionCoins={COINS_PER_LEVEL}
-      finishedNote={isLastInPack ? `You've finished ${pack.name} · a new postcard` : pack.name}
+      finishedNote={note}
       onCommit={commit}
       onSkip={() => nextLevel(true)}
       onContinue={() => nextLevel(false)}

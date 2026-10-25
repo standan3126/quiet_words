@@ -1,8 +1,11 @@
 # Scenery prompts
 
 Twelve **daytime** pictures to start with: two for each of the six journeys, a soft daytime
-scene and a warm golden-hour scene. The locations in a journey take turns using its pictures.
-Journeys without pictures keep using the painted scenes.
+scene and a warm golden-hour scene. The daytime picture (`-1`) shows until 5pm and the
+golden-hour picture (`-2`) from 5pm until night mode, changing only between levels, never in
+the middle of a puzzle. More pictures can follow the same rule: odd numbers are daytime, even
+numbers golden hour, and the locations in a journey take turns using them. Journeys without
+pictures keep using the painted scenes.
 
 At night the game always shows its painted night scene with fireflies, so no night pictures
 are needed.

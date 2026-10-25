@@ -1,10 +1,18 @@
 // Chooses the picture behind the home and play screens.
 // Night is always the painted night scene: photos are too bright and busy for bedtime.
 
+export type SceneTime = 'day' | 'dusk'
+
 export interface SceneImage {
   file: string // in public/scenery/
   journey: string
+  time?: SceneTime // older manifests have none: treated as day
 }
+
+export const DUSK_HOUR = 17
+
+// Golden-hour pictures from 5pm until night mode takes over.
+export const sceneTime = (now: Date): SceneTime => (now.getHours() >= DUSK_HOUR ? 'dusk' : 'day')
 
 export type SceneryMode = 'painted' | 'builtin' | 'album'
 
@@ -20,6 +28,7 @@ export interface SceneChoice {
   mode: SceneryMode
   albumPhotos: string[] // the chosen album's photos
   images: SceneImage[]
+  time: SceneTime
 }
 
 export function pickScene(c: SceneChoice): Scene {
@@ -28,7 +37,10 @@ export function pickScene(c: SceneChoice): Scene {
   if (c.mode === 'album' && c.albumPhotos.length) return { kind: 'slideshow', photoIds: c.albumPhotos }
   if (c.mode === 'builtin') {
     const pool = c.images.filter((i) => i.journey === c.journey)
-    if (pool.length) return { kind: 'builtin', file: pool[c.packId % pool.length].file }
+    // Pictures for this time of day if the journey has any, otherwise whatever it has.
+    const timed = pool.filter((i) => (i.time ?? 'day') === c.time)
+    const pick = timed.length ? timed : pool
+    if (pick.length) return { kind: 'builtin', file: pick[c.packId % pick.length].file }
   }
   return painted
 }

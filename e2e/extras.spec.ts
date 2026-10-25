@@ -85,6 +85,28 @@ test('postcards fill in as places are finished, with no blue at night', async ({
   expect(await maxBlue(page)).toBeLessThanOrEqual(8)
 })
 
+test('a postcard plays its place again without moving the journey along', async ({ page }) => {
+  await seed(page, { progress: at(31) })
+  await page.getByRole('button', { name: 'Postcards' }).click()
+  await page.getByRole('button', { name: 'Visit Clover Hill again' }).click()
+  await expect(page.getByText('Level 1 of 15 · visiting again')).toBeVisible()
+  await page.getByRole('button', { name: 'Home' }).click()
+  await expect(page.getByRole('button', { name: 'Back to Clover Hill' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Continue · Level 31' })).toBeVisible()
+
+  // The last level of the place leads back to the postcards, with the journey where it was.
+  await seed(page, { progress: at(31, { revisit: { packId: 1, level: 15, current: null } }) })
+  await page.getByRole('button', { name: 'Back to Clover Hill' }).click()
+  await expect(page.getByText('Level 15 of 15 · visiting again')).toBeVisible()
+  await page.getByRole('button', { name: 'More' }).click()
+  await page.getByRole('button', { name: 'Skip this level' }).click()
+  await expect(page.getByRole('heading', { name: 'Postcards' })).toBeVisible()
+  await page.getByRole('button', { name: 'Back' }).click()
+  await expect(page.getByRole('button', { name: 'Back to Clover Hill' })).toHaveCount(0)
+  await page.getByRole('button', { name: 'Continue · Level 31' }).click()
+  await expect(page.getByText('Level 31', { exact: true })).toBeVisible()
+})
+
 test('the breaks have no blue at night either', async ({ page }) => {
   await seed(page, { progress: at(12, { pendingBreak: { kind: 'wordsearch', after: 12 } }), settings: { themeMode: 'night' } })
   await page.getByRole('button', { name: /Continue/ }).click()

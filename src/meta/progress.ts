@@ -12,6 +12,14 @@ export interface DailyState {
   current: LevelProgress
 }
 
+// Playing a finished place's levels again, picked from its postcard. Kept apart from the
+// journey so it never moves the player's place in it.
+export interface Revisit {
+  packId: number
+  level: number
+  current: LevelProgress | null
+}
+
 export interface Progress {
   level: number // the level being played (or next to play)
   coins: number
@@ -20,6 +28,7 @@ export interface Progress {
   quizNext: number // position in the quiz bank, so questions don't repeat until all are seen
   daily: DailyState | null
   flowers: string[] // dates of finished daily puzzles; each is a pressed flower in Postcards
+  revisit: Revisit | null
   stats: { levelsDone: number; wordsFound: number; bonusFound: number; skipped: number }
 }
 
@@ -61,6 +70,7 @@ export const defaultProgress: Progress = {
   quizNext: 0,
   daily: null,
   flowers: [],
+  revisit: null,
   stats: { levelsDone: 0, wordsFound: 0, bonusFound: 0, skipped: 0 },
 }
 

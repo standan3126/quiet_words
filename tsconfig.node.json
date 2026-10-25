@@ -19,5 +19,7 @@
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["vite.config.ts", "tools"]
+  "include": ["vite.config.ts", "tools"],
+  // Imports the game's painted scenes (JSX, bundler-style imports), so it runs with the app's settings.
+  "exclude": ["tools/preview-paintings.ts"]
 }

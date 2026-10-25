@@ -424,13 +424,25 @@ h3 {
   background: var(--tile);
 }
 
+button.postcard {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
 .postcard svg {
   width: 100%;
   height: 100%;
   display: block;
 }
 
-.postcard figcaption {
+.postcard figcaption,
+.postcard .caption {
   position: absolute;
   left: 0;
   right: 0;

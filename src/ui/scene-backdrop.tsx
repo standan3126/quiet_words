@@ -54,12 +54,13 @@ interface Props {
   scene: Scene
   journey: string // for the painted scene if a picture won't load
   packId: number
+  place: string
   theme: 'day' | 'night'
   motion: boolean
 }
 
 // The picture behind the home and play screens, plus a soft shade that keeps text readable.
-export function SceneBackdrop({ scene, journey, packId, theme, motion }: Props) {
+export function SceneBackdrop({ scene, journey, packId, place, theme, motion }: Props) {
   const [failed, setFailed] = useState(false) // a built-in picture that wouldn't load
   const file = scene.kind === 'builtin' ? scene.file : ''
   useEffect(() => setFailed(false), [file])
@@ -68,7 +69,7 @@ export function SceneBackdrop({ scene, journey, packId, theme, motion }: Props) 
   const seed = packId
   return (
     <div class={`scene${painted ? ' painted' : ''}`} aria-hidden="true">
-      {painted && <PaintedScene journey={journey} seed={seed} night={theme === 'night'} />}
+      {painted && <PaintedScene journey={journey} seed={seed} night={theme === 'night'} place={place} />}
       {!painted && scene.kind === 'builtin' && <img class="scene-media" src={`${base}scenery/${scene.file}`} alt="" key={scene.file} onError={() => setFailed(true)} />}
       {!painted && scene.kind === 'slideshow' && <Slideshow photoIds={scene.photoIds} />}
       <div class="scene-shade" />
