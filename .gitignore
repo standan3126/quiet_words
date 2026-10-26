@@ -13,6 +13,8 @@ data/raw/wordnet/
 # --- Personal: never published ---
 # The original research notes for this project.
 wordgame.md
+# Claude handoff notes (mention family, phones and setup).
+CLAUDE.md
 # Game backups hold progress and family photos.
 quiet-words-backup-*.json
 *backup*.json
