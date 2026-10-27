@@ -116,7 +116,9 @@ textarea {
 
 input[type='text'],
 input:not([type]),
-input[type='time'] {
+input[type='time'],
+input[type='password'],
+input[type='number'] {
   font: inherit;
   color: var(--text);
   background: var(--tile);

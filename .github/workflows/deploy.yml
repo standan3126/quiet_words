@@ -21,15 +21,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      # GameHub's shared toolbox is bundled into the game (see vite.config.ts).
+      - uses: actions/checkout@v4
+        with:
+          repository: standan3126/standan3126.github.io
+          path: .hub
+          sparse-checkout: shared
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
       - run: npm ci
       - run: npx vitest run
+        env:
+          SHARED_DIR: .hub/shared/v1
       - run: npm run build
         env:
           BASE_PATH: /${{ github.event.repository.name }}/
+          SHARED_DIR: .hub/shared/v1
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist

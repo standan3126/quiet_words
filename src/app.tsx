@@ -197,6 +197,12 @@ export function App() {
           onSleep={setSleepTimer}
           onAlbums={() => setScreen('albums')}
           onBack={() => setScreen('home')}
+          level={progress.level}
+          coins={progress.coins}
+          onSetProgress={(level, coins) =>
+            // A fresh start on the chosen level: no half-played board, revisit or waiting little game.
+            setProgress((p) => ({ ...p, level, coins, current: null, revisit: null, pendingBreak: null }))
+          }
         />
       )}
       {screen === 'albums' && (

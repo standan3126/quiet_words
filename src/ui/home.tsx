@@ -1,4 +1,5 @@
 import type { Screen } from '../app'
+import { HUB_URL } from '../meta/install'
 import { MoonIcon, SunIcon } from './icons'
 
 interface Props {
@@ -15,6 +16,9 @@ interface Props {
 export function Home({ theme, ready, level, revisiting, dailyDone, onNavigate, onContinue, onToggleTheme }: Props) {
   return (
     <main class="screen home">
+      <a class="hub-link" href={HUB_URL} aria-label="Exit to GameHub">
+        <span aria-hidden="true">‹</span> GameHub
+      </a>
       <button class="icon-button theme-toggle" onClick={onToggleTheme} aria-label={theme === 'night' ? 'Switch to day mode' : 'Switch to night mode'}>
         {theme === 'night' ? <MoonIcon /> : <SunIcon />}
       </button>

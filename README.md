@@ -5,14 +5,15 @@ A calm word game for bedtime and breaks: the swipe-a-word crossword from *Wordsc
 sounds and music, painted scenery with lazy moving creatures, your own photo albums, and a
 night mode with no blue light.
 
-It's a web app: it runs in any phone or computer browser, installs to the home screen, and
-works offline once installed. Everything a player saves (progress, settings, photo albums)
+It's a web app and part of [GameHub](https://standan3126.github.io/), the one installable app
+for these games: it runs in any phone or computer browser, and works offline inside GameHub
+once it has been played. Everything a player saves (progress, settings, photo albums)
 stays on their own device.
 
 ## Playing
 
-- **Online:** the GitHub Pages address, `https://standan3126.github.io/quiet_words/`. Open it on
-  a phone and use Settings → *Add to your home screen*.
+- **Online:** `https://standan3126.github.io/quiet_words/`, or from GameHub
+  (`https://standan3126.github.io/`), which is what goes on the home screen.
 - **At home, on this computer:** `npm run dev`, then open the address it prints. Phones on the
   same Wi-Fi can use the `Network:` address.
 - **Moving to a new phone or address:** Settings → *Save a backup*, then *Restore from a
@@ -21,8 +22,9 @@ stays on their own device.
 ## Publishing changes
 
 Every push to `main` runs the tests, builds the game and publishes it to GitHub Pages
-(`.github/workflows/deploy.yml`). Installed copies pick up the new version the next time
-they're opened; reload once or twice if it doesn't appear.
+(`.github/workflows/deploy.yml`). GameHub's shared toolbox (`../hub/shared/v1`, or the hub repo
+in the workflow) is bundled in as `@shared`. Phones pick up the new version the next time
+it's opened; reload once or twice if it doesn't appear.
 
 ## Adding scenery pictures
 

@@ -517,3 +517,47 @@ button.postcard {
 .dimmed {
   opacity: 0.5;
 }
+
+/* Links styled like the buttons around them */
+a.add-photos {
+  display: block;
+  box-sizing: border-box;
+  text-align: center;
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Back to GameHub, on the home screen (top left, across from the day/night switch) */
+.hub-link {
+  position: absolute;
+  top: max(16px, env(safe-area-inset-top));
+  left: 16px;
+  min-height: 44px;
+  padding: 0 14px 0 10px;
+  border-radius: 999px;
+  border: 1px solid var(--panel-edge);
+  background: var(--panel);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: inherit;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.hub-link span {
+  font-size: 1.4em;
+  line-height: 0;
+}
+
+/* Grown-up tools: hidden behind 5 taps on the Settings heading and the family code */
+.secret-code {
+  display: flex;
+  gap: 8px;
+  margin: 0 0 12px;
+}
+
+.secret-code input {
+  flex: 1;
+  min-width: 0;
+}

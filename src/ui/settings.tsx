@@ -3,6 +3,7 @@ import type { Album } from '../meta/albums'
 import { BREAK_EVERY_STOPS, BREAK_KINDS, describeEvery } from '../meta/breaks'
 import type { Settings, ThemeMode } from '../meta/settings'
 import { DeviceSettings } from './device-settings'
+import { GrownUpTools, useSecretTaps } from './grown-up'
 import { BackIcon } from './icons'
 import { ScenerySettings } from './scenery-settings'
 import { SleepTimer, type SleepMinutes } from './sleep-timer'
@@ -16,6 +17,9 @@ interface Props {
   onSleep: (minutes: SleepMinutes) => void
   onAlbums: () => void
   onBack: () => void
+  level: number
+  coins: number
+  onSetProgress: (level: number, coins: number) => void
 }
 
 const themeModes: { value: ThemeMode; label: string }[] = [
@@ -90,15 +94,18 @@ function BreakSettings({ settings, onChange }: { settings: Settings; onChange: (
   )
 }
 
-export function SettingsScreen({ settings, sleepMinutes, albums, hasBuiltIn, onChange, onSleep, onAlbums, onBack }: Props) {
+export function SettingsScreen(props: Props) {
+  const { settings, sleepMinutes, albums, hasBuiltIn, onChange, onSleep, onAlbums, onBack } = props
+  const [secretTap, askingCode] = useSecretTaps()
   return (
     <main class="screen settings">
       <header class="screen-header">
         <button class="icon-button" onClick={onBack} aria-label="Back">
           <BackIcon />
         </button>
-        <h2>Settings</h2>
+        <h2 onClick={secretTap}>Settings</h2>
       </header>
+      {askingCode && <GrownUpTools level={props.level} coins={props.coins} onSet={props.onSetProgress} />}
 
       <section class="panel">
         <h3>Light</h3>

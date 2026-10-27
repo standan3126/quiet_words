@@ -1,37 +1,20 @@
-import { useEffect, useRef, useState } from 'preact/hooks'
+import { useRef, useState } from 'preact/hooks'
 import { backupFileName, makeBackup, readBackup, restoreBackup, type Backup } from '../meta/backup'
-import { canPromptInstall, isApple, isInstalled, onInstallChange, promptInstall } from '../meta/install'
+import { HUB_URL, isInstalled } from '../meta/install'
 
-function InstallSection() {
-  const [, refresh] = useState(0)
-  useEffect(() => onInstallChange(() => refresh((n) => n + 1)), [])
-  const secure = window.isSecureContext
-
+function GameHubSection() {
   return (
     <section class="panel">
-      <h3>Add to your home screen</h3>
+      <h3>GameHub</h3>
       {isInstalled() ? (
-        <p class="soft">Installed. Quiet Words opens like an app and works without the internet.</p>
-      ) : canPromptInstall() ? (
-        <>
-          <p class="soft">Install Quiet Words so it opens like an app and works without the internet.</p>
-          <button class="add-photos" onClick={promptInstall}>
-            Install
-          </button>
-        </>
-      ) : !secure ? (
-        <p class="soft">Installing needs the game's secure web address (starting with https). This address is for trying it out at home.</p>
-      ) : isApple() ? (
-        <ol class="steps">
-          <li>Tap the Share button (the square with an arrow) in Safari.</li>
-          <li>Scroll down and tap "Add to Home Screen".</li>
-          <li>Tap "Add".</li>
-        </ol>
+        <p class="soft">Quiet Words is part of GameHub on this phone. It works without the internet once it has been played.</p>
       ) : (
-        <ol class="steps">
-          <li>Open the browser menu (⋮).</li>
-          <li>Tap "Install app" or "Add to Home screen".</li>
-        </ol>
+        <>
+          <p class="soft">Quiet Words is part of GameHub, one app for the whole family's calm games. Add GameHub to your home screen to play offline.</p>
+          <a class="add-photos" href={HUB_URL}>
+            Open GameHub
+          </a>
+        </>
       )}
     </section>
   )
@@ -122,7 +105,7 @@ function BackupSection() {
 export function DeviceSettings() {
   return (
     <>
-      <InstallSection />
+      <GameHubSection />
       <BackupSection />
     </>
   )
