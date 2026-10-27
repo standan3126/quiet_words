@@ -83,6 +83,13 @@ html.ios-app #app {
   height: 100lvh;
 }
 
+/* Under a solid top bar the page starts below it: use the height it's given (main.tsx). */
+html.ios-solid-bar,
+html.ios-solid-bar body,
+html.ios-solid-bar #app {
+  height: var(--app-height, 100%);
+}
+
 html.large-text {
   font-size: 118%;
 }

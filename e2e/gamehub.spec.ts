@@ -49,3 +49,16 @@ test('setting the level by hand is hidden behind taps and the family code', asyn
   await page.reload()
   await expect(page.getByRole('button', { name: 'Continue · Level 105' })).toBeVisible()
 })
+
+// On an iPhone home-screen GameHub with a solid top bar, the page starts below the bar, so the
+// puzzle must fit the height it's given: the tools at the bottom are on screen without scrolling.
+test('fits the screen in an iPhone app with a solid top bar', async ({ page }) => {
+  await page.addInitScript(() => Object.defineProperty(navigator, 'standalone', { get: () => true }))
+  await page.goto('/')
+  await page.getByRole('button', { name: 'Begin your journey' }).click()
+  await expect(page.getByText('Level 1', { exact: true })).toBeVisible()
+  expect(await page.evaluate(() => document.documentElement.classList.contains('ios-solid-bar'))).toBe(true)
+  const fits = await page.evaluate(() => document.documentElement.scrollHeight <= window.innerHeight)
+  expect(fits).toBe(true)
+  await expect(page.getByRole('button', { name: /^Reveal a letter/ })).toBeInViewport({ ratio: 1 })
+})

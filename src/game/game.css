@@ -23,6 +23,10 @@ html.ios-app .play {
   padding-bottom: max(28px, env(safe-area-inset-bottom));
 }
 
+html.ios-solid-bar .play {
+  height: var(--app-height, 100%);
+}
+
 /* Title and coins sit on soft panels so they stay readable over any photo. */
 .play-title {
   flex: 1;
