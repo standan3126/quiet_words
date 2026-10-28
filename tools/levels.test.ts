@@ -1,7 +1,7 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { canSpell, letterCounts, type Level, type LevelIndex, type Pack, type PlacedWord } from '../src/game/level.ts'
+import { canSpell, letterCounts, type LevelIndex, type Pack, type PlacedWord } from '../src/game/level.ts'
 import { buildLayout, gridRuns, mulberry32 } from './crossword.ts'
 
 const ROOT = join(import.meta.dirname, '..')
@@ -38,8 +38,7 @@ describe.runIf(existsSync(join(levelDir, 'index.json')))('generated levels', () 
     .sort()
     .map((f) => JSON.parse(readFileSync(join(levelDir, f), 'utf8')))
   const journeyLevels = packs.flatMap((p) => p.levels)
-  const daily: Level[] = JSON.parse(readFileSync(join(levelDir, 'daily.json'), 'utf8'))
-  const levels = [...journeyLevels, ...daily]
+  const levels = journeyLevels
   const answers = new Set(readList('answers.txt'))
   const valid = new Set(readList('valid.txt'))
   const banned = new Set([...readList('blocklist.txt'), ...readList('raw/profanity_en.txt')])
@@ -48,7 +47,6 @@ describe.runIf(existsSync(join(levelDir, 'index.json')))('generated levels', () 
     expect(index.packs.length).toBe(packs.length)
     expect(index.totalLevels).toBe(journeyLevels.length)
     expect(journeyLevels.map((l) => l.id)).toEqual(journeyLevels.map((_, i) => i + 1))
-    expect(daily).toHaveLength(365)
   })
 
   it('every level is fair and well formed', () => {

@@ -36,7 +36,7 @@ const wordTargets: Record<number, [number, number]> = { 3: [2, 3], 4: [3, 5], 5:
 const sortedLetters = (w: string) => [...w].sort().join('')
 const usedWheels = new Set<string>() // no two levels share the same set of letters
 
-function makeLevel(id: number, rng: Rng, length = wheelLength(id), cap = rankCap(id), daily = false): Level {
+function makeLevel(id: number, rng: Rng, length = wheelLength(id), cap = rankCap(id)): Level {
   const [min, max] = wordTargets[length]
   // Later levels within a band lean toward fuller grids.
   const target = Math.min(max, min + Math.floor(rng() * (max - min + 1)))
@@ -60,7 +60,7 @@ function makeLevel(id: number, rng: Rng, length = wheelLength(id), cap = rankCap
     // a row of its own below the grid. Chosen without the RNG so nothing else about the level changes.
     let { width, height } = layout
     const words = [...layout.words]
-    if (!daily && id >= CHALLENGE_FROM && id % CHALLENGE_EVERY === 0 && height + 2 <= LIMITS.maxHeight) {
+    if (id >= CHALLENGE_FROM && id % CHALLENGE_EVERY === 0 && height + 2 <= LIMITS.maxHeight) {
       // Not hiding inside a grid word ("siren" next to "sirens"), or it's no challenge.
       const word = others.find((w) => w.length >= 4 && !words.some((p) => p.word.includes(w)))
       if (word) {
@@ -103,15 +103,4 @@ for (let p = 0; p < packCount; p++) {
 
 writeFileSync(join(OUT, 'index.json'), JSON.stringify(index, null, 1))
 
-// A year of daily puzzles: a little bigger than the journey around them (mostly 7 letters),
-// never reusing a journey wheel. The game picks one by date, so it works offline.
-const DAILY_DAYS = 365
-const DAILY_ID_BASE = 100_000
-const daily: Level[] = []
-for (let n = 0; n < DAILY_DAYS; n++) {
-  const id = DAILY_ID_BASE + n
-  // The daily puzzle has its butterfly instead of a challenge word.
-  daily.push(makeLevel(id, mulberry32(id * 2654435761), n % 4 === 3 ? 6 : 7, 8_000, true))
-}
-writeFileSync(join(OUT, 'daily.json'), JSON.stringify(daily))
-console.log(`${index.packs.length} packs, ${index.totalLevels} levels, ${daily.length} daily puzzles`)
+console.log(`${index.packs.length} packs, ${index.totalLevels} levels`)

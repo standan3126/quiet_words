@@ -1,6 +1,6 @@
 // A themed word search break, traced with the same swipe as the wheel. Untimed.
 import { useMemo, useRef, useState } from 'preact/hooks'
-import { audio } from '../audio/engine'
+import { sound } from '../hub'
 import { COINS_SEARCH_DONE, COINS_SEARCH_WORD } from '../meta/progress'
 import { CoinIcon } from '../ui/icons'
 import { lineCells, makeSearch, SIZE } from './wordsearch-gen'
@@ -42,14 +42,14 @@ export function WordSearch({ seed, breakNumber, onDone }: Props) {
     grid.current!.setPointerCapture(e.pointerId)
     start.current = cellAt(e)
     setSelection([start.current])
-    audio.letter(0)
+    sound.step(0)
   }
 
   const onMove = (e: PointerEvent) => {
     if (!start.current) return
     const line = lineCells(start.current, cellAt(e))
     if (line.length !== selection.length || key(line[line.length - 1]) !== key(selection[selection.length - 1])) {
-      if (line.length > selection.length) audio.letter(line.length - 1)
+      if (line.length > selection.length) sound.step(line.length - 1)
       setSelection(line)
     }
   }
@@ -63,8 +63,8 @@ export function WordSearch({ seed, breakNumber, onDone }: Props) {
     if (hit) {
       const next = [...found, hit.word]
       setFound(next)
-      if (next.length === search.words.length) setTimeout(audio.levelComplete, 500)
-      else audio.word()
+      if (next.length === search.words.length) setTimeout(sound.celebrate, 500)
+      else sound.chime()
     }
     setSelection([])
   }

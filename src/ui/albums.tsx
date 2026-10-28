@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'preact/hooks'
 import { ALBUM_LIMIT, type AddResult, type Album } from '../meta/albums'
 import { photoBlob } from '../meta/photos'
 import type { Settings } from '../meta/settings'
-import { BackIcon } from './icons'
 
 export interface AlbumActions {
   create: (name: string) => Promise<Album[]>
@@ -17,7 +16,6 @@ interface Props {
   settings: Settings
   actions: AlbumActions
   onChange: (patch: Partial<Settings>) => void
-  onBack: () => void
 }
 
 function Thumb({ id, onRemove }: { id: string; onRemove?: () => void }) {
@@ -129,7 +127,7 @@ function AlbumDetail({ album, active, actions, onUse, onClose }: { album: Album;
   )
 }
 
-export function AlbumsScreen({ albums, settings, actions, onChange, onBack }: Props) {
+export function AlbumsScreen({ albums, settings, actions, onChange }: Props) {
   const [openId, setOpenId] = useState<string | null>(null)
   const [naming, setNaming] = useState(false)
   const [name, setName] = useState('')
@@ -145,12 +143,15 @@ export function AlbumsScreen({ albums, settings, actions, onChange, onBack }: Pr
 
   return (
     <main class="screen albums">
+      {/* Home (top left, from the toolbox frame) leaves; inside an album this goes back to the list. */}
       <header class="screen-header">
-        <button class="icon-button" onClick={open ? () => setOpenId(null) : onBack} aria-label="Back">
-          <BackIcon />
-        </button>
         <h2>Photo albums</h2>
       </header>
+      {open && (
+        <button class="text-button" onClick={() => setOpenId(null)}>
+          ‹ All albums
+        </button>
+      )}
 
       {open ? (
         <AlbumDetail

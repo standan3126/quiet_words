@@ -1,25 +1,22 @@
-import { readFileSync } from 'node:fs'
 import { expect, test, type Page } from '@playwright/test'
-import { butterflyWord, dayNumber } from '../src/game/daily'
-import type { Level } from '../src/game/level'
 import { bankIndex, SENTENCES } from '../src/modes/word-games-bank'
 import { makeSearch } from '../src/modes/wordsearch-gen'
-import { maxBlue, seed, swipe } from './helpers'
+import { gear, homeButton, maxBlue, seed, settingsPanel } from './helpers'
 
 const stats = { levelsDone: 0, wordsFound: 0, bonusFound: 0, skipped: 0 }
-const at = (level: number, extra: object = {}) => ({ level, coins: 50, current: null, pendingBreak: null, breakNext: {}, daily: null, flowers: [], stats, ...extra })
+const at = (level: number, extra: object = {}) => ({ level, coins: 50, current: null, pendingBreak: null, breakNext: {}, stats, ...extra })
 // Only the one little game, after every `every` levels.
 const only = (kind: string, every = 4) => ({ breakEvery: every, breakKinds: [kind] })
 const skipLevel = async (page: Page) => {
-  await page.getByRole('button', { name: 'More' }).click()
   await page.getByRole('button', { name: 'Skip this level' }).click()
+  await page.getByRole('dialog', { name: 'Skip this level' }).getByRole('button', { name: 'Skip this level' }).click()
 }
+const play = (page: Page) => page.getByRole('button', { name: 'Play', exact: true }).click()
 
 test('a fill-the-blank break follows its level, untimed and kind', async ({ page }) => {
   await seed(page, { progress: at(8), settings: only('grammar', 8) })
-  await page.getByRole('button', { name: /Continue/ }).click()
-  await page.getByRole('button', { name: 'More' }).click()
-  await page.getByRole('button', { name: 'Skip this level' }).click()
+  await play(page)
+  await skipLevel(page)
 
   for (let i = 1; i <= 3; i++) {
     await expect(page.getByText(`Fill the blank · ${i} of 3`)).toBeVisible()
@@ -36,7 +33,7 @@ test('a fill-the-blank break follows its level, untimed and kind', async ({ page
 
 test('a word search break follows its level, solved by swiping', async ({ page }) => {
   await seed(page, { progress: at(12, { breakNext: { wordsearch: 1 } }), settings: only('wordsearch', 12) })
-  await page.getByRole('button', { name: /Continue/ }).click()
+  await play(page)
   await skipLevel(page)
 
   const search = makeSearch(12, 1)
@@ -59,7 +56,7 @@ test('a word search break follows its level, solved by swiping', async ({ page }
 
 test('a swipe that is not a word leaves no highlight behind', async ({ page }) => {
   await seed(page, { progress: at(12, { pendingBreak: { kind: 'wordsearch', after: 12 } }) })
-  await page.getByRole('button', { name: /Continue/ }).click()
+  await play(page)
   const a = (await page.locator('[data-cell="0,0"]').boundingBox())!
   const b = (await page.locator('[data-cell="1,0"]').boundingBox())!
   await page.mouse.move(a.x + a.width / 2, a.y + a.height / 2)
@@ -72,7 +69,7 @@ test('a swipe that is not a word leaves no highlight behind', async ({ page }) =
 
 test('spot the mistake and the sentence builder', async ({ page }) => {
   await seed(page, { progress: at(4, { pendingBreak: { kind: 'mistake', after: 4 } }) })
-  await page.getByRole('button', { name: /Continue/ }).click()
+  await play(page)
   for (let i = 1; i <= 3; i++) {
     await expect(page.getByText(`Spot the mistake · ${i} of 3`)).toBeVisible()
     await page.locator('.tap-word').first().click()
@@ -83,7 +80,7 @@ test('spot the mistake and the sentence builder', async ({ page }) => {
   await expect(page.getByText('Level 4', { exact: true })).toBeVisible()
 
   await seed(page, { progress: at(4, { pendingBreak: { kind: 'unscramble', after: 4 } }) })
-  await page.getByRole('button', { name: /Continue/ }).click()
+  await play(page)
   const sentence = SENTENCES[bankIndex('unscramble', 0)]
   // Tap the words in order; the pool shrinks as each one moves up.
   for (const word of sentence.split(' ')) await page.locator('.build-pool .tap-word', { hasText: new RegExp(`^${word.replace(/[.?!]/g, '\\$&')}$`) }).first().click()
@@ -92,48 +89,23 @@ test('spot the mistake and the sentence builder', async ({ page }) => {
 
 test('little games can be turned off, or chosen one by one', async ({ page }) => {
   await seed(page, { progress: at(2) })
-  await page.getByRole('button', { name: 'Settings' }).click()
-  const slider = page.getByRole('slider', { name: /How often/ })
+  await gear(page).click()
+  const panel = settingsPanel(page)
+  const slider = panel.getByRole('slider', { name: /How often/ })
   await slider.fill('0')
-  await expect(page.getByText('Never')).toBeVisible()
+  await expect(panel.getByText('Never')).toBeVisible()
   await slider.fill('7')
-  await expect(page.getByText('After every level')).toBeVisible()
-  for (const name of ['Word search', 'Fill the blank', 'Spelling', 'Spot the mistake', 'Parts of speech', 'Punctuation']) await page.getByRole('checkbox', { name }).uncheck()
-  await page.getByRole('button', { name: 'Back', exact: true }).click()
-  await page.getByRole('button', { name: /Continue/ }).click()
+  await expect(panel.getByText('After every level')).toBeVisible()
+  for (const name of ['Word search', 'Fill the blank', 'Spelling', 'Spot the mistake', 'Parts of speech', 'Punctuation']) await panel.getByRole('checkbox', { name }).uncheck()
+  await panel.locator('.hub-settings-close').click()
+  await play(page)
   await skipLevel(page)
   await expect(page.getByText('Sentence builder · 1 of 3')).toBeVisible()
 })
 
-test('the daily puzzle: butterfly bonus, a pressed flower, and no streak to keep', async ({ page }) => {
-  await page.clock.setFixedTime(new Date('2026-10-24T10:00:00'))
-  const daily: Level[] = JSON.parse(readFileSync('public/levels/daily.json', 'utf8'))
-  const level = daily[dayNumber('2026-10-24') % daily.length]
-  const marked = butterflyWord(level)
-
-  await seed(page, { progress: at(3) })
-  await page.getByRole('button', { name: "Today's puzzle" }).click()
-  await expect(page.getByText('Daily puzzle', { exact: true })).toBeVisible()
-  await expect(page.getByLabel('butterfly')).toBeVisible()
-
-  await swipe(page, marked, level.letters)
-  await expect(page.getByText('The butterfly flutters off · +10')).toBeVisible()
-  await expect(page.getByLabel('butterfly')).toHaveCount(0)
-  for (const p of level.words.filter((w) => w.word !== marked)) await swipe(page, p.word, level.letters)
-
-  await expect(page.getByText('A pressed flower for your collection')).toBeVisible()
-  await page.getByRole('button', { name: 'Continue' }).click()
-  await expect(page.getByRole('button', { name: "Today's puzzle · finished" })).toBeVisible()
-  // The journey is exactly where it was.
-  await expect(page.getByRole('button', { name: 'Continue · Level 3' })).toBeVisible()
-
-  await page.getByRole('button', { name: 'Postcards' }).click()
-  await expect(page.locator('.flower')).toHaveCount(1)
-})
-
-test('postcards fill in as places are finished, with no blue at night', async ({ page }) => {
+test('Levels: postcards fill in as places are finished, with no blue at night', async ({ page }) => {
   await seed(page, { progress: at(31), settings: { themeMode: 'night' } })
-  await page.getByRole('button', { name: 'Postcards' }).click()
+  await page.getByRole('button', { name: 'Levels' }).click()
   await expect(page.getByText('2 of 66 places visited')).toBeVisible()
   await expect(page.locator('.postcard:not(.locked)')).toHaveCount(2)
   await expect(page.getByText('Clover Hill')).toBeVisible()
@@ -142,43 +114,46 @@ test('postcards fill in as places are finished, with no blue at night', async ({
 
 test('a postcard plays its place again without moving the journey along', async ({ page }) => {
   await seed(page, { progress: at(31) })
-  await page.getByRole('button', { name: 'Postcards' }).click()
+  await page.getByRole('button', { name: 'Levels' }).click()
   await page.getByRole('button', { name: 'Visit Clover Hill again' }).click()
   await expect(page.getByText('Level 1 of 15 · visiting again')).toBeVisible()
-  await page.getByRole('button', { name: 'Home' }).click()
-  await expect(page.getByRole('button', { name: 'Back to Clover Hill' })).toBeVisible()
-  await expect(page.getByRole('button', { name: 'Continue · Level 31' })).toBeVisible()
+  await homeButton(page).click()
+  await expect(page.locator('.home-where')).toHaveText('Visiting Clover Hill again')
+  // Levels has the way back to the journey, where it was.
+  await page.getByRole('button', { name: 'Levels' }).click()
+  await page.getByRole('button', { name: 'Back to your journey · Level 31' }).click()
+  await expect(page.getByText('Level 31', { exact: true })).toBeVisible()
 
-  // The last level of the place leads back to the postcards, with the journey where it was.
+  // The last level of the place leads back to Levels, with the journey where it was.
   await seed(page, { progress: at(31, { revisit: { packId: 1, level: 15, current: null } }) })
-  await page.getByRole('button', { name: 'Back to Clover Hill' }).click()
+  await play(page)
   await expect(page.getByText('Level 15 of 15 · visiting again')).toBeVisible()
-  await page.getByRole('button', { name: 'More' }).click()
-  await page.getByRole('button', { name: 'Skip this level' }).click()
-  await expect(page.getByRole('heading', { name: 'Postcards' })).toBeVisible()
-  await page.getByRole('button', { name: 'Back' }).click()
-  await expect(page.getByRole('button', { name: 'Back to Clover Hill' })).toHaveCount(0)
-  await page.getByRole('button', { name: 'Continue · Level 31' }).click()
+  await skipLevel(page)
+  await expect(page.getByRole('heading', { name: 'Levels' })).toBeVisible()
+  await expect(page.getByRole('button', { name: /Back to your journey/ })).toHaveCount(0)
+  await homeButton(page).click()
+  await expect(page.locator('.home-where')).toHaveText('Level 31')
+  await play(page)
   await expect(page.getByText('Level 31', { exact: true })).toBeVisible()
 })
 
 test('the breaks have no blue at night either', async ({ page }) => {
   await seed(page, { progress: at(12, { pendingBreak: { kind: 'wordsearch', after: 12 } }), settings: { themeMode: 'night' } })
-  await page.getByRole('button', { name: /Continue/ }).click()
+  await play(page)
   await expect(page.locator('.search-grid')).toBeVisible()
   expect(await maxBlue(page)).toBeLessThanOrEqual(8)
   await seed(page, { progress: at(8, { pendingBreak: { kind: 'grammar', after: 8 } }), settings: { themeMode: 'night' } })
-  await page.getByRole('button', { name: /Continue/ }).click()
+  await play(page)
   await page.locator('.quiz-choice').first().click()
   expect(await maxBlue(page)).toBeLessThanOrEqual(8)
   await seed(page, { progress: at(8, { pendingBreak: { kind: 'speech', after: 8 } }), settings: { themeMode: 'night' } })
-  await page.getByRole('button', { name: /Continue/ }).click()
+  await play(page)
   await page.locator('.tap-word').first().click()
   expect(await maxBlue(page)).toBeLessThanOrEqual(8)
   // Night highlighter strokes over a found word.
   const search = makeSearch(12, 0)
   await seed(page, { progress: at(12, { pendingBreak: { kind: 'wordsearch', after: 12 } }), settings: { themeMode: 'night' } })
-  await page.getByRole('button', { name: /Continue/ }).click()
+  await play(page)
   for (const w of search.words.slice(0, 4)) {
     const [first, last] = [w.cells[0], w.cells[w.cells.length - 1]]
     const a = (await page.locator(`[data-cell="${first[0]},${first[1]}"]`).boundingBox())!
@@ -190,7 +165,7 @@ test('the breaks have no blue at night either', async ({ page }) => {
   }
   expect(await maxBlue(page)).toBeLessThanOrEqual(8)
   await seed(page, { progress: at(8, { pendingBreak: { kind: 'punctuation', after: 8 } }), settings: { themeMode: 'night' } })
-  await page.getByRole('button', { name: /Continue/ }).click()
+  await play(page)
   await page.locator('.quiz-choice').first().click()
   expect(await maxBlue(page)).toBeLessThanOrEqual(8)
 })

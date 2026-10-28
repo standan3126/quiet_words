@@ -1,33 +1,31 @@
 import { render } from 'preact'
+import '@shared/kit.css'
+import '@shared/settings.css'
 import './theme/themes.css'
 import './ui/ui.css'
 import './game/game.css'
 import './theme/motion.css'
+import { setupPage, tapToStart, warmOffline } from '@shared/kit.js'
 import { App } from './app'
-import { warmOffline } from '@shared/kit.js'
+import { sound, startPanel, store } from './hub'
+import { moveOldSettings } from './meta/settings'
+import { moveToOwnDatabase } from './meta/storage'
 
-// iOS 26 sizes a home-screen app's page short by the clock's height, leaving a strip at the bottom.
-if ((navigator as Navigator & { standalone?: boolean }).standalone) document.documentElement.classList.add('ios-app')
+// iPhone home-screen sizing (html.ios-app, and html.ios-solid-bar + --app-height under the old
+// solid top bar), from the toolbox.
+setupPage()
 
-// With a solid (white) top bar instead of the see-through one, the page starts below the bar,
-// so the full-screen height above would push the tools off the bottom. iOS keeps the bar style
-// from when the app was added to the home screen, so this can happen on older installs of
-// GameHub. Then the page uses exactly the height it's given.
-if ((navigator as Navigator & { standalone?: boolean }).standalone) {
-  const probe = document.createElement('div')
-  probe.style.cssText = 'position:fixed;top:0;height:0;padding-top:env(safe-area-inset-top);visibility:hidden'
-  document.body.append(probe)
-  if (probe.offsetHeight === 0) {
-    const root = document.documentElement
-    const fit = () => root.style.setProperty('--app-height', `${window.innerHeight}px`)
-    fit()
-    window.addEventListener('resize', fit)
-    root.classList.add('ios-solid-bar')
-  }
-  probe.remove()
+// Saves from before 2026-10-28 move to Quiet Words' own database, and its old settings to the
+// shared panel, before anything reads them.
+async function start() {
+  await moveToOwnDatabase()
+  await moveOldSettings(store)
+  startPanel()
+  render(<App />, document.getElementById('app')!)
+  // Sound may only begin from a tap on iPhone.
+  tapToStart({ title: 'Quiet Words', subtitle: 'a calm place to find words', onStart: () => sound.unlock() })
 }
-
-render(<App />, document.getElementById('app')!)
+start()
 
 // Once the game has settled, save all of it (every level pack and picture) for offline play
 // through GameHub's offline helper. Only missing files are fetched, so later launches cost nothing.

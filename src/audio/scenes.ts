@@ -1,4 +1,5 @@
-import type { Mix } from './ambience'
+// Played through GameHub's toolbox Sound (the same synthesised layers Quiet Words always had).
+export type Mix = Partial<Record<'rain' | 'creek' | 'waves' | 'wind' | 'crickets' | 'fire' | 'birds', number>>
 
 // The nature sounds that go with each journey, by day and by night.
 // Night leans on crickets, rain and fire rather than bright birdsong.

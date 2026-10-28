@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
+import { gear, open, settingsPanel } from './helpers'
 
 // Animations are finished first so a day->night fade in progress isn't counted.
 // Decode a screenshot in the page and return the highest blue value of any pixel.
@@ -21,50 +22,37 @@ async function maxBlue(page: Page): Promise<number> {
 }
 
 async function chooseTheme(page: Page, label: 'Day' | 'Night') {
-  await page.goto('/')
-  await page.getByRole('button', { name: 'Settings' }).click()
-  await page.getByRole('radio', { name: label }).click()
+  await open(page)
+  await gear(page).click()
+  await settingsPanel(page).getByRole('radio', { name: label }).click()
 }
 
 test('night mode emits no blue light', async ({ page }) => {
   await chooseTheme(page, 'Night')
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'night')
-  expect(await maxBlue(page)).toBeLessThanOrEqual(8)
-  await page.getByRole('button', { name: 'Back', exact: true }).click()
-  expect(await maxBlue(page)).toBeLessThanOrEqual(8)
-  await page.getByRole('button', { name: 'Begin your journey' }).click()
+  expect(await maxBlue(page)).toBeLessThanOrEqual(8) // the shared Settings panel
+  await settingsPanel(page).locator('.hub-settings-close').click()
+  expect(await maxBlue(page)).toBeLessThanOrEqual(8) // the launch page and GameHub's frame
+  await page.getByRole('button', { name: 'Play', exact: true }).click()
   await page.getByRole('button', { name: /^Reveal a letter/ }).click()
-  await page.getByRole('button', { name: 'More' }).click()
+  await page.getByRole('button', { name: 'Skip this level' }).click()
   expect(await maxBlue(page)).toBeLessThanOrEqual(8)
   await page.getByRole('button', { name: 'Keep playing' }).click()
 
   // Text boxes: the album name field, focused, with its cursor showing.
-  await page.getByRole('button', { name: 'Home' }).click()
-  await page.getByRole('button', { name: 'Settings' }).click()
-  await page.getByRole('button', { name: 'Photo albums ›' }).click()
+  await gear(page).click()
+  await settingsPanel(page).getByRole('button', { name: 'Photo albums ›' }).click()
   await page.getByRole('button', { name: 'New album' }).click()
   await page.getByPlaceholder('Album name').fill('Night test')
   await page.getByPlaceholder('Album name').selectText()
   expect(await maxBlue(page)).toBeLessThanOrEqual(8)
-  await page.screenshot({ path: 'test-results/home-night.png' })
 })
 
 test('theme choice survives a reload', async ({ page }) => {
   // At noon "auto" means day, so only a saved choice can bring night mode back after reload.
   await page.clock.setFixedTime(new Date('2026-10-24T12:00:00'))
   await chooseTheme(page, 'Night')
-  const stored = () =>
-    page.evaluate(
-      () =>
-        new Promise((done) => {
-          const req = indexedDB.open('keyval-store')
-          req.onsuccess = () => {
-            const get = req.result.transaction('keyval').objectStore('keyval').get('settings')
-            get.onsuccess = () => done(get.result?.themeMode)
-          }
-        }),
-    )
-  await expect.poll(stored).toBe('night')
-  await page.reload()
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem('quiet-words:my-settings')!).light)).toBe('night')
+  await open(page)
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'night')
 })

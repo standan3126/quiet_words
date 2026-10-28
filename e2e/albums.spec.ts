@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
-import { withStorage } from './helpers'
+import { gear, homeButton, open, settingsPanel, withStorage } from './helpers'
 
 // Small test photos, each a different colour so slides can be told apart.
 async function makePhotos(page: Page, count: number) {
@@ -36,8 +36,14 @@ async function maxBlue(page: Page): Promise<number> {
 }
 
 async function openAlbums(page: Page) {
-  await page.getByRole('button', { name: 'Settings' }).click()
-  await page.getByRole('button', { name: 'Photo albums ›' }).click()
+  await gear(page).click()
+  await settingsPanel(page).getByRole('button', { name: 'Photo albums ›' }).click()
+}
+
+async function setLight(page: Page, light: 'Day' | 'Night') {
+  await gear(page).click()
+  await settingsPanel(page).getByRole('radio', { name: light }).click()
+  await settingsPanel(page).locator('.hub-settings-close').click()
 }
 
 async function newAlbum(page: Page, name: string) {
@@ -48,10 +54,8 @@ async function newAlbum(page: Page, name: string) {
 
 test('an album plays as a slow slideshow by day, never at night', async ({ page }) => {
   await page.clock.install()
-  await page.goto('/')
-  await page.getByRole('button', { name: 'Settings' }).click()
-  await page.getByRole('radio', { name: 'Day' }).click()
-  await page.getByRole('button', { name: 'Back', exact: true }).click()
+  await open(page)
+  await setLight(page, 'Day')
 
   await openAlbums(page)
   await newAlbum(page, 'Beach trip')
@@ -61,9 +65,7 @@ test('an album plays as a slow slideshow by day, never at night', async ({ page 
   await page.getByRole('button', { name: 'Use as background' }).click()
   await expect(page.getByRole('button', { name: 'Showing as your background' })).toBeDisabled()
 
-  await page.getByRole('button', { name: 'Back', exact: true }).click() // album list
-  await page.getByRole('button', { name: 'Back', exact: true }).click() // settings
-  await page.getByRole('button', { name: 'Back', exact: true }).click() // home
+  await homeButton(page).click()
   await expect(page.locator('.scene img.slide')).toHaveCount(1)
   const first = await page.locator('.scene img.slide').getAttribute('src')
 
@@ -75,7 +77,7 @@ test('an album plays as a slow slideshow by day, never at night', async ({ page 
   expect(await page.locator('.scene img.slide').last().getAttribute('src')).not.toBe(first)
 
   // Night: no photos at all, just the painted scene and its fireflies, with no blue light.
-  await page.getByRole('button', { name: 'Switch to night mode' }).click()
+  await setLight(page, 'Night')
   await expect(page.locator('.scene.painted')).toBeVisible()
   await expect(page.locator('.scene img')).toHaveCount(0)
   await expect(page.locator('.firefly')).toHaveCount(14)
@@ -83,7 +85,7 @@ test('an album plays as a slow slideshow by day, never at night', async ({ page 
 })
 
 test('albums hold at most 20 photos', async ({ page }) => {
-  await page.goto('/')
+  await open(page)
   await openAlbums(page)
   await newAlbum(page, 'Garden')
   await page.locator('input[type=file]').setInputFiles(await makePhotos(page, 21))
@@ -96,24 +98,24 @@ test('albums hold at most 20 photos', async ({ page }) => {
   await expect(page.getByRole('button', { name: 'Add photos (1 more fit)' })).toBeEnabled()
 
   // Albums and their photos survive a reload.
-  await page.reload()
+  await open(page)
   await openAlbums(page)
   await expect(page.getByText('19 of 20 photos')).toBeVisible()
 })
 
 test('moving scenery: bees, birds and fluff by day, and it can be turned off', async ({ page }) => {
-  await page.goto('/')
-  await page.getByRole('button', { name: 'Settings' }).click()
-  await page.getByRole('radio', { name: 'Day' }).click()
-  await page.getByRole('radio', { name: 'Painted' }).click()
-  await page.getByRole('button', { name: 'Back', exact: true }).click()
+  await open(page)
+  await gear(page).click()
+  await settingsPanel(page).getByRole('radio', { name: 'Day' }).click()
+  await settingsPanel(page).getByRole('radio', { name: 'Painted' }).click()
+  await settingsPanel(page).locator('.hub-settings-close').click()
   await expect(page.locator('.bee')).toHaveCount(3)
   await expect(page.locator('.bird')).toHaveCount(3)
   await expect(page.locator('.fluff')).toHaveCount(7)
 
-  await page.getByRole('button', { name: 'Settings' }).click()
-  await page.getByText('Moving scenery').click()
-  await page.getByRole('button', { name: 'Back', exact: true }).click()
+  await gear(page).click()
+  await settingsPanel(page).getByText('Moving scenery').click()
+  await settingsPanel(page).locator('.hub-settings-close').click()
   await expect(page.locator('.scene-motion')).toHaveCount(0)
 })
 

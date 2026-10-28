@@ -1,5 +1,4 @@
 import { useLayoutEffect, useMemo, useRef, useState } from 'preact/hooks'
-import { ButterflyIcon } from '../ui/icons'
 import type { Level } from './level'
 import { allCells, wordCells, type LevelProgress } from './level-state'
 
@@ -14,14 +13,13 @@ interface Props {
   progress: LevelProgress
   flash: Flash | null
   targeting: boolean // bullseye: hidden cells become tappable
-  butterflyCell?: string // daily puzzle: marks the first square of the butterfly's word
   onCellTap: (key: string) => void
 }
 
 const MAX_CELL = 58
 const GAP = 4
 
-export function Grid({ level, progress, flash, targeting, butterflyCell, onCellTap }: Props) {
+export function Grid({ level, progress, flash, targeting, onCellTap }: Props) {
   const box = useRef<HTMLDivElement>(null)
   const [cell, setCell] = useState(40)
   const cells = useMemo(() => allCells(level), [level])
@@ -80,11 +78,6 @@ export function Grid({ level, progress, flash, targeting, butterflyCell, onCellT
               onClick={() => onCellTap(key)}
             >
               {shown ? c.letter.toUpperCase() : ''}
-              {key === butterflyCell && (
-                <span class="butterfly" aria-label="butterfly">
-                  <ButterflyIcon size={Math.round(cell * 0.42)} />
-                </span>
-              )}
             </button>
           )
         })}

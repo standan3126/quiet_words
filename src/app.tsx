@@ -1,58 +1,56 @@
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks'
-import { audio } from './audio/engine'
 import { loadLevel } from './game/levels'
+import { bridge, frame, panel, settings as panelSettings } from './hub'
 import { addToAlbum, createAlbum, deleteAlbum, loadAlbums, removeFromAlbum, renameAlbum, type Album } from './meta/albums'
-import { defaultProgress, loadProgress, saveProgress, type Progress } from './meta/progress'
-import { defaultSettings, loadSettings, resolveTheme, saveSettings, type Settings } from './meta/settings'
-import { Daily } from './modes/daily'
+import { defaultProgress, fromSaved, loadProgress, saveProgress, type Progress } from './meta/progress'
+import type { Settings } from './meta/settings'
 import { Journey } from './modes/journey'
-import { pickScene, sceneTime, type SceneImage } from './theme/scenery'
-import { loadSceneryImages } from './theme/scenery-images'
+import { pickScene } from './theme/scenery'
 import { AlbumsScreen, type AlbumActions } from './ui/albums'
-import { todayKey } from './game/daily'
 import { Home } from './ui/home'
 import { Postcards } from './ui/postcards'
 import { SceneBackdrop } from './ui/scene-backdrop'
-import { SettingsScreen } from './ui/settings'
-import type { SleepMinutes } from './ui/sleep-timer'
 
-export type Screen = 'home' | 'play' | 'daily' | 'postcards' | 'settings' | 'albums'
+// home is the launch page (Hub top left); the others are play pages (Home top left). Settings is
+// GameHub's shared panel, opened by the gear on every page (hub.ts).
+export type Screen = 'home' | 'play' | 'levels' | 'albums'
 
-export interface Sleep {
-  minutes: SleepMinutes
-  phase: 'awake' | 'fading' | 'asleep'
-}
+const snapshot = (): Settings => ({ ...panelSettings() })
 
 export function App() {
-  const [settings, setSettings] = useState<Settings>(defaultSettings)
+  const [settings, setSettings] = useState<Settings>(snapshot)
   const [progress, setProgress] = useState<Progress>(defaultProgress)
   const [ready, setReady] = useState(false)
   const [screen, setScreen] = useState<Screen>('home')
-  const [now, setNow] = useState(() => new Date())
   const [place, setPlace] = useState<{ journey: string; packId: number; name: string }>({ journey: 'Meadow', packId: 1, name: 'Clover Hill' })
   const [albums, setAlbums] = useState<Album[]>([])
-  const [images, setImages] = useState<SceneImage[]>([])
-  const [sleep, setSleep] = useState<Sleep>({ minutes: null, phase: 'awake' })
 
   useEffect(() => {
     loadAlbums().then(setAlbums)
-    loadSceneryImages().then(setImages)
-    Promise.all([loadSettings(), loadProgress()]).then(([s, p]) => {
-      setSettings(s)
+    loadProgress().then((p) => {
       setProgress(p)
       setReady(true)
     })
-    // Re-check the clock each minute so auto night mode switches on its own.
-    const id = setInterval(() => setNow(new Date()), 60_000)
-    // Browsers only let audio start from a tap. Every tap also resumes audio after a phone
-    // call or other interruption has paused it.
-    const unlock = () => audio.unlock()
-    window.addEventListener('pointerdown', unlock, { capture: true })
-    return () => {
-      clearInterval(id)
-      window.removeEventListener('pointerdown', unlock, { capture: true })
-    }
   }, [])
+
+  // What the shared panel needs from the screen, kept current on every render.
+  bridge.progress = progress
+  bridge.albumsWithPhotos = () => albums.filter((a) => a.photoIds.length).map((a) => a.id)
+  bridge.onSettings = () => setSettings(snapshot())
+  bridge.goHome = () => setScreen('home')
+  bridge.openAlbums = () => {
+    panel.close()
+    setScreen('albums')
+  }
+  // A fresh start on the chosen level: no half-played board, revisit or waiting little game.
+  bridge.setProgress = (level, coins) => setProgress((p) => ({ ...p, level, coins, current: null, revisit: null, pendingBreak: null }))
+  bridge.restoreProgress = (p) => setProgress(fromSaved(p))
+
+  useEffect(() => {
+    frame.setPage(screen === 'home' ? 'launch' : 'play')
+    // Levels and albums scroll under the frame; the page fades out before Home and the gear.
+    document.body.classList.toggle('hub-scrolls', screen === 'levels' || screen === 'albums')
+  }, [screen])
 
   // Save after every change (every word found), but never overwrite saved progress
   // with the defaults before it has loaded.
@@ -69,19 +67,14 @@ export function App() {
     if (ready) loadLevel(activeLevel).then((l) => l && setPlace({ journey: l.pack.journey, packId: l.pack.id, name: l.pack.name }))
   }, [activeLevel, ready])
 
-  const theme = resolveTheme(settings, now)
+  // The panel's Light (Day, Night, or Auto by the clock) decides; it tells us when Auto turns.
+  const theme = panel.night ? 'night' : 'day'
 
-  // Daytime or golden-hour pictures. The picture never changes in the middle of a puzzle,
-  // only when a level is finished or away from the puzzle screens.
-  const timeNow = sceneTime(now)
-  const [time, setTime] = useState(timeNow)
-  const inPuzzle = screen === 'play' || screen === 'daily'
+  // The nature sounds follow the place (unless the player made their own mix in Settings).
   useEffect(() => {
-    if (!inPuzzle) setTime(timeNow)
-  }, [timeNow, inPuzzle])
-  useEffect(() => setTime(sceneTime(new Date())), [activeLevel])
-
-  useEffect(() => audio.update(settings, { journey: place.journey, theme }), [settings, place.journey, theme])
+    bridge.journey = place.journey
+    panel.applySound()
+  }, [place.journey, theme])
 
   const scene = useMemo(
     () =>
@@ -90,11 +83,11 @@ export function App() {
         theme,
         mode: settings.sceneryMode,
         albumPhotos: albums.find((a) => a.id === settings.activeAlbum)?.photoIds ?? [],
-        images,
-        time,
       }),
-    [place, theme, time, settings.sceneryMode, settings.activeAlbum, albums, images],
+    [place, theme, settings.sceneryMode, settings.activeAlbum, albums],
   )
+
+  const update = (patch: Partial<Settings>) => panel.set(patch)
 
   const albumActions: AlbumActions = {
     create: async (name) => {
@@ -105,7 +98,7 @@ export function App() {
     rename: async (id, name) => setAlbums(await renameAlbum(id, name)),
     remove: async (id) => {
       setAlbums(await deleteAlbum(id))
-      if (settings.activeAlbum === id) update({ activeAlbum: null, sceneryMode: 'builtin' })
+      if (settings.activeAlbum === id) update({ activeAlbum: null, sceneryMode: 'painted' })
     },
     addPhotos: async (id, files) => {
       const result = await addToAlbum(id, files)
@@ -123,97 +116,41 @@ export function App() {
     meta?.setAttribute('content', theme === 'night' ? '#120800' : '#efe9dc')
   }, [theme, settings.largeText])
 
-  const update = (patch: Partial<Settings>) => {
-    const next = { ...settings, ...patch }
-    setSettings(next)
-    saveSettings(next)
-  }
-
-  const setSleepTimer = (minutes: SleepMinutes) => {
-    if (minutes === null) {
-      audio.wake()
-      return setSleep({ minutes: null, phase: 'awake' })
-    }
-    audio.sleepIn(
-      minutes,
-      () => setSleep((s) => ({ ...s, phase: 'fading' })),
-      () => setSleep((s) => ({ ...s, phase: 'asleep' })),
-    )
-    setSleep({ minutes, phase: 'awake' })
-  }
+  const play = () => setScreen('play')
 
   return (
     <>
-      {(screen === 'home' || screen === 'play' || screen === 'daily') && (
+      {(screen === 'home' || screen === 'play') && (
         <SceneBackdrop scene={scene} journey={place.journey} packId={place.packId} place={place.name} theme={theme} motion={settings.sceneMotion} />
       )}
       {screen === 'home' && (
-        <Home
-          theme={theme}
-          ready={ready}
-          level={progress.level}
-          revisiting={progress.revisit ? place.name : null}
-          dailyDone={progress.flowers.includes(todayKey(now))}
-          onNavigate={setScreen}
-          onContinue={() => {
-            // Carrying on with the journey leaves any revisit behind.
-            if (progress.revisit) setProgress((p) => ({ ...p, revisit: null }))
-            setScreen('play')
-          }}
-          onToggleTheme={() => update({ themeMode: theme === 'night' ? 'day' : 'night' })}
+        <Home ready={ready} level={progress.level} revisiting={progress.revisit ? place.name : null} onPlay={play} onLevels={() => setScreen('levels')} />
+      )}
+      {screen === 'play' && (
+        <Journey
+          progress={progress}
+          settings={settings}
+          onProgress={setProgress}
+          onHome={() => setScreen('home')}
+          onPostcards={() => setScreen('levels')}
         />
       )}
-      {(screen === 'play' || screen === 'daily') &&
-        (() => {
-          const shared = {
-            progress,
-            settings,
-            sleepMinutes: sleep.minutes,
-            onProgress: setProgress,
-            onSettings: update,
-            onSleep: setSleepTimer,
-            onHome: () => setScreen('home'),
-          }
-          return screen === 'play' ? <Journey {...shared} onPostcards={() => setScreen('postcards')} /> : <Daily {...shared} />
-        })()}
-      {screen === 'postcards' && (
+      {screen === 'levels' && (
         <Postcards
           progress={progress}
           theme={theme}
-          onBack={() => setScreen('home')}
+          onJourney={() => {
+            // Back to the journey leaves the revisit behind.
+            setProgress((p) => ({ ...p, revisit: null }))
+            play()
+          }}
           onRevisit={(pack) => {
             setProgress((p) => ({ ...p, revisit: { packId: pack.id, level: pack.firstLevel, current: null } }))
-            setScreen('play')
+            play()
           }}
         />
       )}
-      {screen === 'settings' && (
-        <SettingsScreen
-          settings={settings}
-          sleepMinutes={sleep.minutes}
-          albums={albums}
-          hasBuiltIn={images.length > 0}
-          onChange={update}
-          onSleep={setSleepTimer}
-          onAlbums={() => setScreen('albums')}
-          onBack={() => setScreen('home')}
-          level={progress.level}
-          coins={progress.coins}
-          onSetProgress={(level, coins) =>
-            // A fresh start on the chosen level: no half-played board, revisit or waiting little game.
-            setProgress((p) => ({ ...p, level, coins, current: null, revisit: null, pendingBreak: null }))
-          }
-        />
-      )}
-      {screen === 'albums' && (
-        <AlbumsScreen albums={albums} settings={settings} actions={albumActions} onChange={update} onBack={() => setScreen('settings')} />
-      )}
-      {/* The screen dims along with the sound. A tap at any point cancels it. */}
-      {sleep.phase !== 'awake' && (
-        <div class={`sleep-dim ${sleep.phase}`} onClick={() => setSleepTimer(null)}>
-          {sleep.phase === 'asleep' && <p>Sleep well · tap to wake</p>}
-        </div>
-      )}
+      {screen === 'albums' && <AlbumsScreen albums={albums} settings={settings} actions={albumActions} onChange={update} />}
     </>
   )
 }

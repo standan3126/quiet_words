@@ -4,7 +4,6 @@ import { SceneMotion } from '../theme/motion'
 import { PaintedScene } from '../theme/painted'
 import type { Scene } from '../theme/scenery'
 
-const base = import.meta.env.BASE_URL
 export const SLIDE_SECONDS = 45
 
 // An album as a slow slideshow: each photo stays 45 seconds, then the next fades in over it.
@@ -52,7 +51,7 @@ function Slideshow({ photoIds }: { photoIds: string[] }) {
 
 interface Props {
   scene: Scene
-  journey: string // for the painted scene if a picture won't load
+  journey: string // for the painted scene
   packId: number
   place: string
   theme: 'day' | 'night'
@@ -61,16 +60,11 @@ interface Props {
 
 // The picture behind the home and play screens, plus a soft shade that keeps text readable.
 export function SceneBackdrop({ scene, journey, packId, place, theme, motion }: Props) {
-  const [failed, setFailed] = useState(false) // a built-in picture that wouldn't load
-  const file = scene.kind === 'builtin' ? scene.file : ''
-  useEffect(() => setFailed(false), [file])
-
-  const painted = scene.kind === 'painted' || failed
+  const painted = scene.kind === 'painted'
   const seed = packId
   return (
     <div class={`scene${painted ? ' painted' : ''}`} aria-hidden="true">
       {painted && <PaintedScene journey={journey} seed={seed} night={theme === 'night'} place={place} />}
-      {!painted && scene.kind === 'builtin' && <img class="scene-media" src={`${base}scenery/${scene.file}`} alt="" key={scene.file} onError={() => setFailed(true)} />}
       {!painted && scene.kind === 'slideshow' && <Slideshow photoIds={scene.photoIds} />}
       <div class="scene-shade" />
       {painted && motion && <SceneMotion seed={seed} night={theme === 'night'} />}

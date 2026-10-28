@@ -14,6 +14,9 @@
   display: flex;
   align-items: center;
   gap: 10px;
+  /* Room for GameHub's frame: Home on the left, the Settings gear on the right. */
+  min-height: 44px;
+  padding: 0 50px 0 104px;
 }
 
 /* iOS may report no bottom inset here, so keep the tools clear of the home bar regardless. */
@@ -376,16 +379,6 @@ html.ios-solid-bar .play {
 .end {
   margin: auto 0;
   text-align: center;
-}
-
-/* Daily puzzle: a butterfly resting on one word, flexing its wings now and then. */
-.cell .butterfly {
-  position: absolute;
-  top: -22%;
-  right: -22%;
-  color: var(--warm);
-  display: flex;
-  animation: rest calc(4s * var(--anim-scale)) ease-in-out infinite;
 }
 
 @keyframes rest {

@@ -7,7 +7,6 @@ import { loadLevel, type LoadedLevel } from '../game/levels'
 import { breakAfter } from '../meta/breaks'
 import { addStats, COINS_PER_LEVEL, type Progress, type Stats } from '../meta/progress'
 import type { Settings } from '../meta/settings'
-import type { SleepMinutes } from '../ui/sleep-timer'
 import { Board } from './board'
 import { WordBreak } from './word-break'
 import { WordSearch } from './wordsearch'
@@ -15,16 +14,12 @@ import { WordSearch } from './wordsearch'
 interface Props {
   progress: Progress
   settings: Settings
-  sleepMinutes: SleepMinutes
   onProgress: (update: (p: Progress) => Progress) => void
-  onSettings: (patch: Partial<Settings>) => void
-  onSleep: (minutes: SleepMinutes) => void
   onHome: () => void
   onPostcards: () => void
 }
 
-export function Journey({ progress, onProgress, onPostcards, ...common }: Props) {
-  const { settings } = common
+export function Journey({ progress, settings, onProgress, onHome, onPostcards }: Props) {
   const [loaded, setLoaded] = useState<LoadedLevel | 'end' | null>(null)
   const visit = progress.revisit
   const levelId = visit ? visit.level : progress.level
@@ -67,7 +62,7 @@ export function Journey({ progress, onProgress, onPostcards, ...common }: Props)
         <div class="end panel">
           <h2>You've walked every trail</h2>
           <p class="soft">That's every level for now. Thank you for playing.</p>
-          <button class="primary-button" onClick={common.onHome}>
+          <button class="primary-button" onClick={onHome}>
             Home
           </button>
         </div>
@@ -83,7 +78,7 @@ export function Journey({ progress, onProgress, onPostcards, ...common }: Props)
 
   const nextLevel = (skipped: boolean) => {
     if (visit) {
-      // The end of a revisit leads back to the postcards.
+      // The end of a revisit leads back to Levels (the postcards).
       if (isLastInPack) {
         onProgress((p) => ({ ...p, revisit: null }))
         return onPostcards()
@@ -99,12 +94,12 @@ export function Journey({ progress, onProgress, onPostcards, ...common }: Props)
     }))
   }
 
-  const note = visit ? (isLastInPack ? `That's ${pack.name} again · back to your postcards` : `Visiting ${pack.name} again`) : isLastInPack ? `You've finished ${pack.name} · a new postcard` : pack.name
+  const note = visit ? (isLastInPack ? `That's ${pack.name} again · back to Levels` : `Visiting ${pack.name} again`) : isLastInPack ? `You've finished ${pack.name} · a new postcard` : pack.name
 
   return (
     <Board
       key={level.id}
-      {...common}
+      settings={settings}
       level={level}
       title={pack.name}
       subtitle={visit ? `Level ${level.id - pack.firstLevel + 1} of ${pack.levelCount} · visiting again` : `Level ${level.id}`}

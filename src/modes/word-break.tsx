@@ -2,7 +2,7 @@
 // is gently corrected and still earns a coin.
 import type { ComponentChildren } from 'preact'
 import { useMemo, useState } from 'preact/hooks'
-import { audio } from '../audio/engine'
+import { sound } from '../hub'
 import { COINS_QUIZ_RIGHT, COINS_QUIZ_TRY } from '../meta/progress'
 import { CoinIcon } from '../ui/icons'
 import { GRAMMAR, SPELLING, type Question } from './quiz-bank'
@@ -96,7 +96,7 @@ function BuildRound({ sentence, seed, onAnswer }: { sentence: string; seed: numb
     if (done) return
     const next = [...placed, i]
     setPlaced(next)
-    if (next.length < words.length) return audio.letter(next.length - 1)
+    if (next.length < words.length) return sound.step(next.length - 1)
     setDone(true)
     // Compare the words, not their positions, so two "the"s can swap places.
     const right = next.map((j) => words[j]).join(' ') === sentence
@@ -167,15 +167,15 @@ export function WordBreak({ kind, start, onDone }: Props) {
 
   const answer: Answer = (right, message, why) => {
     setResult({ right, message, why })
-    if (right) audio.word()
-    else audio.repeat()
+    if (right) sound.chime()
+    else sound.soft()
     setEarned((e) => e + (right ? COINS_QUIZ_RIGHT : COINS_QUIZ_TRY))
   }
 
   const next = () => {
     setResult(null)
     setStep((s) => s + 1)
-    if (step + 1 >= PER_BREAK) audio.levelComplete()
+    if (step + 1 >= PER_BREAK) sound.celebrate()
   }
 
   if (step >= PER_BREAK) {

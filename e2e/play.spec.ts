@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { expect, test, type Page } from '@playwright/test'
 import type { Pack } from '../src/game/level'
-import { swipe } from './helpers'
+import { open, swipe } from './helpers'
 
 const pack: Pack = JSON.parse(readFileSync('public/levels/pack-001.json', 'utf8'))
 const [level1] = pack.levels
@@ -9,8 +9,8 @@ const [level1] = pack.levels
 const cellText = (page: Page, x: number, y: number) => page.locator(`[data-cell="${x},${y}"]`)
 
 test('swiping fills the grid, survives a reload, and finishes the level', async ({ page }) => {
-  await page.goto('/')
-  await page.getByRole('button', { name: 'Begin your journey' }).click()
+  await open(page)
+  await page.getByRole('button', { name: 'Play', exact: true }).click()
   await expect(page.getByText(`Level 1`, { exact: true })).toBeVisible()
 
   const [first, ...rest] = level1.words
@@ -22,8 +22,8 @@ test('swiping fills the grid, survives a reload, and finishes the level', async 
   }
 
   // Progress is saved after every word.
-  await page.reload()
-  await page.getByRole('button', { name: 'Begin your journey' }).click()
+  await open(page)
+  await page.getByRole('button', { name: 'Play', exact: true }).click()
   await expect(cellText(page, first.x, first.y)).toHaveText(first.word[0].toUpperCase())
 
   // A too-short swipe changes nothing and costs nothing.
@@ -40,8 +40,8 @@ test('swiping fills the grid, survives a reload, and finishes the level', async 
 })
 
 test('hints reveal letters and cost coins', async ({ page }) => {
-  await page.goto('/')
-  await page.getByRole('button', { name: 'Begin your journey' }).click()
+  await open(page)
+  await page.getByRole('button', { name: 'Play', exact: true }).click()
   await expect(page.locator('.coins span')).toHaveText('50')
   await page.getByRole('button', { name: /^Reveal a letter/ }).click()
   await expect(page.locator('.cell.revealed')).toHaveCount(1)
@@ -53,17 +53,17 @@ test('hints reveal letters and cost coins', async ({ page }) => {
 })
 
 test('skip moves on with no penalty', async ({ page }) => {
-  await page.goto('/')
-  await page.getByRole('button', { name: 'Begin your journey' }).click()
-  await page.getByRole('button', { name: 'More' }).click()
+  await open(page)
+  await page.getByRole('button', { name: 'Play', exact: true }).click()
   await page.getByRole('button', { name: 'Skip this level' }).click()
+  await page.getByRole('dialog', { name: 'Skip this level' }).getByRole('button', { name: 'Skip this level' }).click()
   await expect(page.getByText('Level 2', { exact: true })).toBeVisible()
   await expect(page.locator('.coins span')).toHaveText('50')
 })
 
 test('tapping a solved word shows its meaning', async ({ page }) => {
-  await page.goto('/')
-  await page.getByRole('button', { name: 'Begin your journey' }).click()
+  await open(page)
+  await page.getByRole('button', { name: 'Play', exact: true }).click()
   const [first] = level1.words
   await swipe(page, first.word, level1.letters)
   await page.locator(`[data-cell="${first.x},${first.y}"]`).click()

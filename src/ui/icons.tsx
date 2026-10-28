@@ -52,36 +52,10 @@ export const SparkleIcon = ({ size = 18 }: { size?: number }) => (
   </Svg>
 )
 
-export const BackIcon = () => (
+// Skip this level: two forward chevrons.
+export const SkipIcon = () => (
   <Svg>
-    <path d="M15 5 8 12l7 7" />
-  </Svg>
-)
-
-export const MoreIcon = () => (
-  <Svg>
-    <circle cx="6" cy="12" r="1" fill="currentColor" />
-    <circle cx="12" cy="12" r="1" fill="currentColor" />
-    <circle cx="18" cy="12" r="1" fill="currentColor" />
-  </Svg>
-)
-
-export const MoonIcon = () => (
-  <Svg>
-    <path d="M19.5 14.5A8 8 0 0 1 9.5 4.5a8 8 0 1 0 10 10Z" />
-  </Svg>
-)
-
-export const SunIcon = () => (
-  <Svg>
-    <circle cx="12" cy="12" r="4" />
-    <path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4" />
-  </Svg>
-)
-
-export const ButterflyIcon = ({ size = 18 }: { size?: number }) => (
-  <Svg size={size}>
-    <path d="M12 8c-1.5-3-6-5.5-7.5-3.5S5 11 9 11.5C6 12.5 5 16 7 17.5s4-1.5 5-4c1 2.5 3 5.5 5 4s1-5-2-6c4-.5 6-5 4.5-7S13.5 5 12 8Z" />
-    <path d="M12 8v9" />
+    <path d="m6 6 6 6-6 6" />
+    <path d="m13 6 6 6-6 6" />
   </Svg>
 )

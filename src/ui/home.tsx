@@ -1,48 +1,32 @@
-import type { Screen } from '../app'
-import { HUB_URL } from '../meta/install'
-import { MoonIcon, SunIcon } from './icons'
-
+// The launch page, laid out like every GameHub game's (the toolbox's .hub-launch): the name at
+// the top, where you are in the middle, Play and Levels pinned at the bottom. Hub (top left) and
+// the Settings gear (top right) come from the toolbox frame.
 interface Props {
-  theme: 'day' | 'night'
   ready: boolean
   level: number
   revisiting: string | null // a place being played again from its postcard
-  dailyDone: boolean
-  onNavigate: (screen: Screen) => void
-  onContinue: () => void
-  onToggleTheme: () => void
+  onPlay: () => void
+  onLevels: () => void
 }
 
-export function Home({ theme, ready, level, revisiting, dailyDone, onNavigate, onContinue, onToggleTheme }: Props) {
+export function Home({ ready, level, revisiting, onPlay, onLevels }: Props) {
+  const where = revisiting ? `Visiting ${revisiting} again` : level > 1 ? `Level ${level}` : 'A journey through quiet places'
   return (
-    <main class="screen home">
-      <a class="hub-link" href={HUB_URL} aria-label="Exit to GameHub">
-        <span aria-hidden="true">‹</span> GameHub
-      </a>
-      <button class="icon-button theme-toggle" onClick={onToggleTheme} aria-label={theme === 'night' ? 'Switch to day mode' : 'Switch to night mode'}>
-        {theme === 'night' ? <MoonIcon /> : <SunIcon />}
-      </button>
-      <div class="home-title">
+    <main class="hub-launch home">
+      <header class="hub-launch-head home-title">
         <h1>Quiet Words</h1>
-        <p class="soft">a calm place to find words</p>
+        <p>a calm place to find words</p>
+      </header>
+      <p class="home-where">{where}</p>
+      <div class="hub-launch-actions">
+        <button class="hub-play" disabled={!ready} onClick={onPlay}>
+          Play
+        </button>
+        {/* Hidden, not removed, until there's a level behind you, so Play never moves. */}
+        <button class="hub-levels" hidden={level < 2} onClick={onLevels}>
+          Levels
+        </button>
       </div>
-      <nav class="home-menu">
-        {revisiting && (
-          <button class="primary" disabled={!ready} onClick={() => onNavigate('play')}>
-            Back to {revisiting}
-          </button>
-        )}
-        <button class={revisiting ? '' : 'primary'} disabled={!ready} onClick={onContinue}>
-          {level > 1 ? `Continue · Level ${level}` : 'Begin your journey'}
-        </button>
-        <button disabled={!ready} onClick={() => onNavigate('daily')}>
-          {dailyDone ? "Today's puzzle · finished" : "Today's puzzle"}
-        </button>
-        <button disabled={!ready} onClick={() => onNavigate('postcards')}>
-          Postcards
-        </button>
-        <button onClick={() => onNavigate('settings')}>Settings</button>
-      </nav>
     </main>
   )
 }

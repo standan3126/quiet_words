@@ -1,7 +1,6 @@
 // Photo files, kept only on this device (IndexedDB), resized once when added.
 // Which album a photo belongs to lives in albums.ts.
-import { del } from 'idb-keyval'
-import { load, save } from './storage'
+import { load, remove, save } from './storage'
 
 const MAX_SIDE = 1600 // plenty for a phone screen, and keeps storage small
 const key = (id: string) => `photo:${id}`
@@ -35,7 +34,7 @@ export async function storePhoto(file: File): Promise<string> {
 
 export async function deletePhoto(id: string): Promise<void> {
   try {
-    await del(key(id))
+    await remove(key(id))
   } catch {
     // Already gone.
   }
@@ -44,7 +43,7 @@ export async function deletePhoto(id: string): Promise<void> {
 // Before albums existed, photos were kept in one flat list under this key.
 const LEGACY_LIST = 'photos'
 export const legacyPhotoIds = async () => (await load<{ id: string }[]>(LEGACY_LIST, [])).map((p) => p.id)
-export const clearLegacyList = () => del(LEGACY_LIST).catch(() => {})
+export const clearLegacyList = () => remove(LEGACY_LIST)
 
 // Stores an already-prepared photo (from a backup) without resizing it again.
 export async function storePhotoBlob(blob: Blob): Promise<string> {

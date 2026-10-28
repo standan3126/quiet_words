@@ -1,23 +1,20 @@
 import { useEffect, useState } from 'preact/hooks'
-import { formatDay } from '../game/daily'
 import type { PackSummary } from '../game/level'
 import { loadIndex } from '../game/levels'
 import type { Progress } from '../meta/progress'
 import { PaintedScene } from '../theme/painted'
-import { PressedFlower } from './flower'
-import { BackIcon } from './icons'
 
 interface Props {
   progress: Progress
   theme: 'day' | 'night'
-  onBack: () => void
+  onJourney: () => void // back to the level reached, leaving a revisit behind
   onRevisit: (pack: PackSummary) => void
 }
 
-// A postcard for every place finished, and a pressed flower for every daily puzzle.
-// Nothing to tend, nothing to roll for: it simply fills in as you play. Tapping a postcard
-// plays that place's levels again.
-export function Postcards({ progress, theme, onBack, onRevisit }: Props) {
+// Levels (the launch page's Levels button): a postcard for every place finished. Nothing to
+// tend, nothing to roll for: it simply fills in as you play. Tapping a postcard plays that
+// place's levels again. Home (top left) comes from the toolbox frame.
+export function Postcards({ progress, theme, onJourney, onRevisit }: Props) {
   const [packs, setPacks] = useState<PackSummary[]>([])
   useEffect(() => {
     loadIndex().then((i) => setPacks(i.packs))
@@ -31,11 +28,13 @@ export function Postcards({ progress, theme, onBack, onRevisit }: Props) {
   return (
     <main class="screen postcards">
       <header class="screen-header">
-        <button class="icon-button" onClick={onBack} aria-label="Back">
-          <BackIcon />
-        </button>
-        <h2>Postcards</h2>
+        <h2>Levels</h2>
       </header>
+      {progress.revisit && (
+        <button class="primary-button" onClick={onJourney}>
+          Back to your journey · Level {progress.level}
+        </button>
+      )}
 
       <p class="soft note">
         {count} of {packs.length} places visited{count ? ' · tap a postcard to visit again' : ''}
@@ -62,21 +61,6 @@ export function Postcards({ progress, theme, onBack, onRevisit }: Props) {
         </section>
       ))}
 
-      <section class="panel">
-        <h3>Pressed flowers</h3>
-        {progress.flowers.length ? (
-          <div class="flower-grid">
-            {progress.flowers.map((date) => (
-              <figure class="flower">
-                <PressedFlower date={date} night={theme === 'night'} />
-                <figcaption class="soft">{formatDay(date)}</figcaption>
-              </figure>
-            ))}
-          </div>
-        ) : (
-          <p class="soft">Finish a daily puzzle to press your first flower.</p>
-        )}
-      </section>
     </main>
   )
 }

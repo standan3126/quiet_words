@@ -16,8 +16,8 @@ stays on their own device.
   (`https://standan3126.github.io/`), which is what goes on the home screen.
 - **At home, on this computer:** `npm run dev`, then open the address it prints. Phones on the
   same Wi-Fi can use the `Network:` address.
-- **Moving to a new phone or address:** Settings → *Save a backup*, then *Restore from a
-  backup* on the new one.
+- **Moving to a new phone:** the gear → *Move your progress* → a transfer code or a backup file.
+  Progress and settings travel; photo album pictures stay on the phone they were added on.
 
 ## Publishing changes
 
@@ -26,10 +26,17 @@ Every push to `main` runs the tests, builds the game and publishes it to GitHub 
 in the workflow) is bundled in as `@shared`. Phones pick up the new version the next time
 it's opened; reload once or twice if it doesn't appear.
 
-## Adding scenery pictures
+## In GameHub
 
-See `SCENERY-PROMPTS.md` for the image prompts and sizes. Save images into `public/scenery/`
-as `<journey>-<number>.jpg` (for example `coast-1.jpg`), run `npm run scenery`, and push.
+Quiet Words sits in GameHub's frame and uses its shared toolbox (see the hub's
+`shared/CONTRACT.md`): Hub or Home top left, the Settings gear top right, the launch page with
+Play and Levels, the shared Settings panel (with Quiet Words' own sections), GameHub's settings
+as the starting point, the sleep timer, and the toolbox's Sound (the same generated notes, music
+and nature sounds Quiet Words always had). Saves live in its own IndexedDB database,
+`quiet-words`, and settings in localStorage under `quiet-words:`.
+
+Scenery is painted in code for every place (the AI nature photos were retired on 2026-10-28),
+or the player's own photo album by day.
 
 ## Words and levels
 
@@ -38,7 +45,7 @@ All levels are generated ahead of time from free word lists (sources and licence
 
 ```sh
 npm run lexicon      # data/answers.txt (common words) and data/valid.txt (bonus words)
-npm run levels       # public/levels/: 990 journey levels and 365 daily puzzles
+npm run levels       # public/levels/: 990 journey levels
 npm run definitions  # public/definitions.json (needs WordNet; see data/SOURCES.md)
 npm run show -- 1 120 650   # print levels as text grids to check them by eye
 ```
@@ -51,7 +58,7 @@ through, so check the early levels still match when you do.
 
 ```sh
 npm test          # unit tests, including checks on every generated level
-npm run e2e       # browser tests: gameplay, sound, night mode has no blue light, albums, backups
+npm run e2e       # browser tests: gameplay, GameHub's frame and panel, sound, no blue light at night, albums
 ```
 
 The audio test saves a WAV of every sound to `audio-previews/` for listening.
@@ -60,11 +67,12 @@ The audio test saves a WAV of every sound to `audio-previews/` for listening.
 
 | Folder | What's in it |
 | --- | --- |
-| `src/game/` | the wheel, grid, word checking, hints, level loading, daily puzzle |
-| `src/modes/` | the crossword board, journey, daily puzzle, quiz and word-search breaks |
-| `src/audio/` | marimba notes, nature sounds and music, all generated in the browser |
+| `src/game/` | the wheel, grid, word checking, hints, level loading |
+| `src/modes/` | the crossword board, journey, quiz and word-search breaks |
+| `src/hub.ts` | where it plugs into GameHub: the toolbox's Sound, the shared Settings panel and the frame |
+| `src/audio/` | which nature sounds go with each place (played by the toolbox's Sound) |
 | `src/theme/` | colours, painted scenes, moving creatures, scenery choice |
-| `src/meta/` | saving: settings, progress, photo albums, backups |
-| `src/ui/` | home, settings, albums, postcards and other screens |
-| `tools/` | the scripts that build the word lists, levels, definitions and scenery list |
+| `src/meta/` | saving: settings, progress, photo albums |
+| `src/ui/` | the launch page, Levels (postcards), albums and other screens |
+| `tools/` | the scripts that build the word lists, levels and definitions |
 | `e2e/` | browser tests |

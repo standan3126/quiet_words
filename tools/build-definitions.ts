@@ -92,7 +92,7 @@ function define(word: string): { base: string; pos: Pos; gloss: string } | undef
 }
 
 const words = new Set<string>()
-const levels: Level[] = JSON.parse(readFileSync(join(LEVELS, 'daily.json'), 'utf8'))
+const levels: Level[] = []
 for (const file of readdirSync(LEVELS).filter((f) => f.startsWith('pack-'))) {
   const pack: Pack = JSON.parse(readFileSync(join(LEVELS, file), 'utf8'))
   levels.push(...pack.levels)

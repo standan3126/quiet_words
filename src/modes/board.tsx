@@ -1,8 +1,9 @@
-// The crossword board: wheel, grid, hints and the gentle "Lovely." card. Used by both the
-// journey and the daily puzzle, which decide where its coins and progress go.
+// The crossword board: wheel, grid, hints and the gentle "Lovely." card. The journey decides
+// where its coins and progress go. Home (top left) and the Settings gear (top right) come from
+// GameHub's frame; Sound, Mute and the sleep timer are in the gear.
 import type { JSX } from 'preact'
 import { useEffect, useRef, useState } from 'preact/hooks'
-import { audio } from '../audio/engine'
+import { sound } from '../hub'
 import { define, type Definition } from '../game/definitions'
 import { Grid, type Flash } from '../game/grid'
 import { bullseye, hiddenCells, HINT_COST, lightbulb, RELAXED_HINT_AFTER_MS, rocket, ROCKET_LETTERS, type HintKind } from '../game/hints'
@@ -12,8 +13,7 @@ import { applyOutcome, classify, type Outcome } from '../game/validator'
 import { Wheel } from '../game/wheel'
 import { COINS_PER_BONUS, type Stats } from '../meta/progress'
 import type { Settings } from '../meta/settings'
-import { SleepTimer, type SleepMinutes } from '../ui/sleep-timer'
-import { BackIcon, BulbIcon, CoinIcon, MoreIcon, RocketIcon, ShuffleIcon, SparkleIcon, TargetIcon } from '../ui/icons'
+import { BulbIcon, CoinIcon, RocketIcon, ShuffleIcon, SkipIcon, SparkleIcon, TargetIcon } from '../ui/icons'
 
 export interface BoardProps {
   level: Level
@@ -22,16 +22,11 @@ export interface BoardProps {
   lp: LevelProgress
   coins: number
   settings: Settings
-  sleepMinutes: SleepMinutes
   completionCoins: number
   finishedNote: string // shown above "Lovely." when the level is done
-  butterfly?: { word: string; coins: number } // the daily puzzle's marked word
   onCommit: (next: LevelProgress, coins: number, stats: Partial<Stats>) => void
   onSkip?: () => void
   onContinue: () => void
-  onSettings: (patch: Partial<Settings>) => void
-  onSleep: (minutes: SleepMinutes) => void
-  onHome: () => void
 }
 
 type Preview = { text: string; state: 'tracing' | Outcome['kind']; id: number }
@@ -40,14 +35,14 @@ const buzz = (settings: Settings, ms: number) => settings.haptics && navigator.v
 
 // Remount (key it by level id) for each new level, so all of this state starts fresh.
 export function Board(props: BoardProps) {
-  const { level, lp, coins, settings, butterfly } = props
+  const { level, lp, coins, settings } = props
   const [preview, setPreview] = useState<Preview>({ text: '', state: 'tracing', id: 0 })
   const [message, setMessage] = useState<{ text: string; id: number } | null>(null)
   const [flash, setFlash] = useState<Flash | null>(null)
   const [shuffleCount, setShuffleCount] = useState(0)
   const [targeting, setTargeting] = useState(false)
   const [freeHint, setFreeHint] = useState(false)
-  const [panel, setPanel] = useState<'none' | 'bonus' | 'menu' | 'words'>('none')
+  const [panel, setPanel] = useState<'none' | 'bonus' | 'skip' | 'words'>('none')
   const [meanings, setMeanings] = useState<(Definition | { word: string; gloss?: undefined })[]>([])
   const [earned, setEarned] = useState<number | null>(null) // coins from the level just finished
   const lastProgressAt = useRef(Date.now())
@@ -88,7 +83,7 @@ export function Board(props: BoardProps) {
         const available = [...level.letters].filter((c) => c === key).length
         if (used >= available) return // not on the wheel, or already used up
         show(typed.current + key)
-        audio.letter(typed.current.length - 1)
+        sound.step(typed.current.length - 1)
       } else if (e.key === 'Backspace' && typed.current) {
         show(typed.current.slice(0, -1))
       } else if (e.key === 'Escape' && typed.current) {
@@ -115,14 +110,10 @@ export function Board(props: BoardProps) {
         setMessage({ text: `Challenge word · +${p.word.length}`, id: nextId() })
       }
     }
-    if (butterfly && !lp.found.includes(butterfly.word) && next.found.includes(butterfly.word)) {
-      total += butterfly.coins
-      setMessage({ text: `The butterfly flutters off · +${butterfly.coins}`, id: nextId() })
-    }
     if (finished) {
       setEarned(props.completionCoins + next.bonus.length * COINS_PER_BONUS)
       setTargeting(false)
-      setTimeout(audio.levelComplete, 700) // after the last word's chord has rung
+      setTimeout(sound.celebrate, 700) // after the last word's chord has rung
     }
     props.onCommit(next, total, { ...stats, levelsDone: finished ? 1 : 0 })
   }
@@ -141,19 +132,19 @@ export function Board(props: BoardProps) {
       case 'answer':
         madeProgress()
         setFlash({ word, kind: 'new', id: nextId() })
-        audio.word()
+        sound.chime()
         buzz(settings, 12)
         commit(next, 0, { wordsFound: 1 })
         break
       case 'bonus':
         madeProgress()
         setMessage({ text: `Bonus word · +${COINS_PER_BONUS}`, id: nextId() })
-        audio.bonus()
+        sound.sparkle()
         commit(next, COINS_PER_BONUS, { bonusFound: 1 })
         break
       case 'repeat':
         if (outcome.inGrid) setFlash({ word, kind: 'repeat', id: nextId() })
-        audio.repeat()
+        sound.soft()
         setMessage({ text: 'Already found', id: nextId() })
         break
     }
@@ -169,7 +160,7 @@ export function Board(props: BoardProps) {
     const price = cost(kind)
     const next = kind === 'lightbulb' ? lightbulb(level, lp) : rocket(level, lp)
     if (price === 0) madeProgress()
-    audio.reveal()
+    sound.ping()
     commit(next, -price)
   }
 
@@ -189,15 +180,9 @@ export function Board(props: BoardProps) {
     const next = bullseye(level, lp, key)
     if (next === lp) return // tapped a letter that's already showing
     setTargeting(false)
-    audio.reveal()
+    sound.ping()
     commit(next, -HINT_COST.bullseye)
   }
-
-  const butterflyCell = (() => {
-    if (!butterfly || lp.found.includes(butterfly.word)) return undefined
-    const p = level.words.find((w) => w.word === butterfly.word)
-    return p && wordCells(p)[0]
-  })()
 
   const tools: { kind: HintKind; label: string; Icon: () => JSX.Element }[] = [
     { kind: 'lightbulb', label: 'Reveal a letter', Icon: BulbIcon },
@@ -208,9 +193,6 @@ export function Board(props: BoardProps) {
   return (
     <main class="play">
       <header class="play-header">
-        <button class="icon-button" onClick={props.onHome} aria-label="Home">
-          <BackIcon />
-        </button>
         <div class="play-title">
           <div>{props.title}</div>
           <small class="soft">{props.subtitle}</small>
@@ -219,12 +201,9 @@ export function Board(props: BoardProps) {
           <CoinIcon />
           <span>{coins}</span>
         </div>
-        <button class="icon-button" onClick={() => setPanel(panel === 'menu' ? 'none' : 'menu')} aria-label="More">
-          <MoreIcon />
-        </button>
       </header>
 
-      <Grid level={level} progress={lp} flash={flash} targeting={targeting} butterflyCell={butterflyCell} onCellTap={onCellTap} />
+      <Grid level={level} progress={lp} flash={flash} targeting={targeting} onCellTap={onCellTap} />
 
       <div class={`preview ${preview.state}`} key={preview.id} aria-live="polite">
         {preview.text.split('').map((ch) => (
@@ -241,7 +220,7 @@ export function Board(props: BoardProps) {
           shuffleCount={shuffleCount}
           onTrace={(text) => {
             // Each letter added climbs the scale; undoing a letter is silent.
-            if (text.length > traceLength.current) audio.letter(text.length - 1)
+            if (text.length > traceLength.current) sound.step(text.length - 1)
             traceLength.current = text.length
             if (text) setPreview((prev) => ({ text, state: 'tracing', id: prev.state === 'tracing' ? prev.id : nextId() }))
           }}
@@ -268,6 +247,12 @@ export function Board(props: BoardProps) {
             </button>
           )
         })}
+        {props.onSkip && (
+          <button class="tool" onClick={() => setPanel(panel === 'skip' ? 'none' : 'skip')} aria-label="Skip this level" disabled={complete}>
+            <SkipIcon />
+            <small>skip</small>
+          </button>
+        )}
       </nav>
 
       {panel === 'bonus' && (
@@ -301,28 +286,18 @@ export function Board(props: BoardProps) {
         </div>
       )}
 
-      {panel === 'menu' && (
-        <div class="sheet panel" role="dialog" aria-label="Options">
-          <h3>Options</h3>
-          <label class="row">
-            <span>Sound</span>
-            <input type="checkbox" checked={!settings.muted} onChange={(e) => props.onSettings({ muted: !(e.target as HTMLInputElement).checked })} aria-label="Sound on" />
-          </label>
-          <SleepTimer value={props.sleepMinutes} onChange={props.onSleep} />
-          {props.onSkip && (
-            <>
-              <p class="soft">Not enjoying this level? You can move on any time — no penalty.</p>
-              <button
-                class="primary-button"
-                onClick={() => {
-                  setPanel('none')
-                  props.onSkip!()
-                }}
-              >
-                Skip this level
-              </button>
-            </>
-          )}
+      {panel === 'skip' && props.onSkip && (
+        <div class="sheet panel" role="dialog" aria-label="Skip this level">
+          <p class="soft">Not enjoying this level? You can move on any time — no penalty.</p>
+          <button
+            class="primary-button"
+            onClick={() => {
+              setPanel('none')
+              props.onSkip!()
+            }}
+          >
+            Skip this level
+          </button>
           <button class="text-button" onClick={() => setPanel('none')}>Keep playing</button>
         </div>
       )}

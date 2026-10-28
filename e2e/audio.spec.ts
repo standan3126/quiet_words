@@ -1,9 +1,13 @@
 import { mkdirSync, writeFileSync } from 'node:fs'
+import { resolve } from 'node:path'
 import { expect, test } from '@playwright/test'
 
 // Renders each sound offline in the browser, checks it is audible, unclipped and free of
 // glitches, and saves a WAV to audio-previews/ so a person can actually listen to it.
+// The sounds are GameHub's toolbox copies (identical to Quiet Words' originals), served by the
+// dev server from the hub folder next to this one (or SHARED_DIR).
 test.use({ baseURL: 'http://localhost:5174' })
+const SOUND = '/@fs' + resolve(process.env.SHARED_DIR ?? '../hub/shared/v1', 'sound')
 
 const RATE = 44100
 interface Render {
@@ -33,7 +37,7 @@ function wav(left: number[], right: number[]): Buffer {
 test('every sound renders cleanly at a gentle level', async ({ page }) => {
   test.setTimeout(120_000)
   await page.goto('/')
-  const renders: Render[] = await page.evaluate(async (RATE) => {
+  const renders: Render[] = await page.evaluate(async ({ RATE, SOUND }) => {
     // The sounds are randomised; a fixed seed makes every run render exactly the same audio,
     // so a failure means the code changed, not that the dice landed badly.
     let seed = 12345
@@ -43,9 +47,9 @@ test('every sound renders cleanly at a gentle level', async ({ page }) => {
       t ^= t + Math.imul(t ^ (t >>> 7), t | 61)
       return ((t ^ (t >>> 14)) >>> 0) / 4294967296
     }
-    const { createLayer, LAYERS } = await import('/src/audio/ambience.ts')
-    const { Notes } = await import('/src/audio/notes.ts')
-    const { Music } = await import('/src/audio/music.ts')
+    const { createLayer, LAYERS } = await import(`${SOUND}/ambience.js`)
+    const { Notes } = await import(`${SOUND}/notes.js`)
+    const { Music } = await import(`${SOUND}/music.js`)
 
     const render = async (name: string, seconds: number, build: (ctx: OfflineAudioContext) => void) => {
       const ctx = new OfflineAudioContext(2, RATE * seconds, RATE)
@@ -85,7 +89,7 @@ test('every sound renders cleanly at a gentle level', async ({ page }) => {
       ;[523.25, 659.25, 783.99, 1046.5, 1318.51].forEach((f, i) => notes.strike(f, 3.8 + i * 0.13, 0.24, 2.4))
     }))
     return results
-  }, RATE)
+  }, { RATE, SOUND })
 
   mkdirSync('audio-previews', { recursive: true })
   const report: string[] = []

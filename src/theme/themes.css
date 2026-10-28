@@ -29,6 +29,26 @@
   color-scheme: light;
 }
 
+/* GameHub's frame, launch page and Settings panel (kit.css, settings.css) in Quiet Words'
+   colours and type. Night keeps the blue channel at 00 like everything else here. */
+:root {
+  --hub-bg: var(--bg);
+  --hub-ink: var(--text);
+  --hub-soft: var(--text-soft);
+  --hub-accent: var(--accent);
+  --hub-accent-ink: var(--accent-text);
+  --hub-panel: var(--panel);
+  --hub-panel-solid: #f7f2e6;
+  --hub-line: var(--panel-edge);
+  --hub-font: 'Georgia', 'Iowan Old Style', 'Palatino Linotype', serif;
+}
+
+:root[data-theme='night'] {
+  --hub-panel-solid: #1e0e00;
+  --hub-topbar: #120800;
+  --hub-veil: rgba(18, 8, 0, 0.7);
+}
+
 :root[data-theme='night'] {
   --bg: #120800;
   --bg-deep: #0a0400;

@@ -13,7 +13,6 @@
     "levels": "tsx tools/generate-levels.ts",
     "show": "tsx tools/show-level.ts",
     "definitions": "tsx tools/build-definitions.ts",
-    "scenery": "tsx tools/build-scenery.ts",
     "paintings": "tsx --tsconfig tsconfig.app.json tools/preview-paintings.ts"
   },
   "dependencies": {

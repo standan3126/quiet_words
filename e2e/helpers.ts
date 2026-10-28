@@ -1,5 +1,17 @@
 import type { Page } from '@playwright/test'
 
+// Opens the game and taps GameHub's "Tap to Start" (it lets sound play on iPhone).
+export async function open(page: Page, path = '/') {
+  await page.goto(path)
+  await page.locator('.hub-start').click()
+  await page.locator('.hub-start').waitFor({ state: 'detached' })
+}
+
+// GameHub's frame and shared Settings panel.
+export const gear = (page: Page) => page.locator('.hub-gear')
+export const homeButton = (page: Page) => page.locator('.hub-corner', { hasText: 'Home' })
+export const settingsPanel = (page: Page) => page.locator('dialog.hub-settings')
+
 // Drags the pointer through the wheel letters that spell `word`.
 export async function swipe(page: Page, word: string, letters: string) {
   const used = new Set<number>()
@@ -40,29 +52,34 @@ export async function maxBlue(page: Page): Promise<number> {
 
 // Writes saved progress/settings straight into storage, then opens the game, to start mid-game.
 // The writing happens on a plain data file from the same site, so the game isn't running and
-// can't save over it while starting up.
-export async function seed(page: Page, values: { progress?: object; settings?: object }) {
+// can't save over it while starting up. Settings are written the old way (Quiet Words' own,
+// before the shared panel), which the game carries over to the panel when it starts.
+// db: 'own' is Quiet Words' database; 'old' the shared default one it used before 2026-10-28.
+export async function seed(page: Page, values: { progress?: object; settings?: object }, db: 'own' | 'old' = 'own') {
   await page.goto('/levels/index.json')
   await page.evaluate(
-    (values) =>
+    ({ values, db }) =>
       new Promise<void>((done) => {
-        const req = indexedDB.open('keyval-store')
-        req.onupgradeneeded = () => req.result.createObjectStore('keyval')
+        localStorage.clear()
+        const [name, store] = db === 'own' ? ['quiet-words', 'saves'] : ['keyval-store', 'keyval']
+        const req = indexedDB.open(name)
+        req.onupgradeneeded = () => req.result.createObjectStore(store)
         req.onsuccess = () => {
-          const tx = req.result.transaction('keyval', 'readwrite')
-          if (values.progress) tx.objectStore('keyval').put(values.progress, 'progress')
-          if (values.settings) tx.objectStore('keyval').put(values.settings, 'settings')
+          const tx = req.result.transaction(store, 'readwrite')
+          tx.objectStore(store).clear() // a fresh phone, apart from what's given
+          if (values.progress) tx.objectStore(store).put(values.progress, 'progress')
+          if (values.settings) tx.objectStore(store).put(values.settings, 'settings')
           tx.oncomplete = () => done()
         }
       }),
-    values,
+    { values, db },
   )
-  await page.goto('/')
+  await open(page)
 }
 
 // Runs `write` against the game's storage from a page where the game isn't running.
 export async function withStorage(page: Page, write: () => Promise<void>) {
   await page.goto('/levels/index.json')
   await page.evaluate(write)
-  await page.goto('/')
+  await open(page)
 }
